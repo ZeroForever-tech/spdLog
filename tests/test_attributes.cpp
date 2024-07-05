@@ -11,7 +11,7 @@ TEST_CASE("Attribute test") {
     log_a.set_pattern("[%n] [%*]");
     log_b.set_pattern("[%n] [%*]");
 
-    log_a.push_attribute("my_key", "my_value");
+    log_a.attrs().put("my_key", "my_value");
 
     log_a.info("Hello");
     log_b.info("Hello");

@@ -161,11 +161,7 @@ public:
     // create new logger with same sinks and configuration.
     std::shared_ptr<logger> clone(std::string logger_name);
 
-    void push_attribute(log_attributes::attr_map_t const &attributes);
-    void push_attribute(log_attributes::key_t const &key, log_attributes::value_t const &value);
-    void push_attribute(log_attributes const &attributes);
-    void remove_attribute(const log_attributes::key_t &key);
-    void clear_attribute();
+    log_attributes &attrs();
 
 private:
     std::string name_;

@@ -15,6 +15,25 @@ public:
     using value_t = attr_map_t::mapped_type;
     using const_iter = attr_map_t::const_iterator;
 
+    class SPDLOG_API log_attr_context {
+    public:
+        log_attr_context(log_attributes& parent, attr_map_t const& attrs)
+            : parent_(parent),
+              tmp_attrs_{attrs} {
+            parent_.put(attrs);
+        }
+        explicit log_attr_context(log_attributes& parent)
+            : log_attr_context(parent, {}) {}
+
+        ~log_attr_context() {
+            for (auto&& key_value : tmp_attrs_) parent_.remove(key_value.first);
+        }
+
+    private:
+        log_attributes& parent_;
+        attr_map_t tmp_attrs_;
+    };
+
     log_attributes() = default;
     log_attributes(const log_attributes& other) { put(other.get_map()); }
     log_attributes& operator=(const log_attributes& other) {
@@ -64,13 +83,9 @@ public:
         return attrs;
     }
 
-    template <typename Attribute_Iter>
-    void attr_ctx(Attribute_Iter begin, Attribute_Iter end) {
-        auto lck = lock();
-        attrs.insert(begin, end);
-    }
-
-    void attr_ctx(std::initializer_list<attr_map_t::value_type> attributes) { attr_ctx(attributes.begin(), attributes.end()); }
+    // RAII-wrapper that inserts a couple of attributes and removes them upon destruction
+    log_attr_context scoped_ctx(attr_map_t const& attributes) { return log_attr_context(*this, attributes); }
+    log_attr_context scoped_ctx(key_t key, value_t value) { return log_attr_context(*this, {{key, value}}); }
 
     bool empty() {
         auto lck = lock();

@@ -52,11 +52,12 @@ public:
         return attrs.empty();
     }
 
+    // return {true, iter} if found, {false, end} otherwise
     std::pair<bool, const_iter> const get(key_t const& key) const {
         auto lck = lock();
         auto value_it = attrs.find(key);
 
-        return std::make_pair(value_it == attrs.end(), value_it);
+        return std::make_pair(value_it != attrs.end(), value_it);
     }
 
     // provide a local copy of the attributes to be free of race issues

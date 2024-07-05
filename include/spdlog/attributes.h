@@ -16,23 +16,20 @@ public:
     using const_iter = attr_map_t::const_iterator;
 
     log_attributes() = default;
-    log_attributes(const log_attributes& other) {
-        const auto& o_map = other.get_map();
-        attr_ctx(o_map.begin(), o_map.end());
-    }
+    log_attributes(const log_attributes& other) { put(other.get_map()); }
     log_attributes& operator=(const log_attributes& other) {
         if (this != &other) {
             clear();
-            const auto& o_map = other.get_map();
-            attr_ctx(o_map.begin(), o_map.end());
+            put(other.get_map());
         }
         return *this;
     }
 
-    void put(const key_t& key, const value_t& value) {
+    void put(attr_map_t const& attributes) {
         auto lck = lock();
-        attrs[key] = value;
+        attrs.insert(attributes.begin(), attributes.end());
     }
+    void put(const key_t& key, const value_t& value) { put({{key, value}}); }
 
     void remove(const key_t& key) {
         auto lck = lock();

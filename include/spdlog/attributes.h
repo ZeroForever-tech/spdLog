@@ -2,14 +2,15 @@
 
 #include <spdlog/common.h>
 
+#include <map>
 #include <mutex>
-#include <unordered_map>
+
 
 namespace spdlog {
 
 class SPDLOG_API log_attributes {
 public:
-    using attr_map_t = std::unordered_map<std::string, std::string>;
+    using attr_map_t = std::map<std::string, std::string>;
     using key_t = attr_map_t::key_type;
     using value_t = attr_map_t::mapped_type;
     using const_iter = attr_map_t::const_iterator;

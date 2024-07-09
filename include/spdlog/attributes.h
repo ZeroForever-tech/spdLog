@@ -46,7 +46,7 @@ public:
 
     void put(attr_map_t const& attributes) {
         auto lck = lock();
-        attrs.insert(attributes.begin(), attributes.end());
+        for (auto const& attribute : attributes) attrs.insert_or_assign(attribute.first, attribute.second);
     }
     void put(const key_t& key, const value_t& value) { put({{key, value}}); }
 

@@ -9,9 +9,11 @@
 using namespace spdlog;
 
 std::string format_attrs(std::string_view const log_name, log_attributes::attr_map_t const& attrs = {}) {
-    std::vector<std::string> fmt_attrs;
-    for (auto&& attr : attrs) fmt_attrs.push_back(fmt::format("{}:{}", attr.first, attr.second));
-    return fmt::format("[{}] [{}]", log_name, fmt::join(fmt_attrs, " "));
+    std::string fmt_attrs;
+    for (auto&& attr : attrs) fmt_attrs += fmt_lib::format("{}:{} ", attr.first, attr.second);
+    if (!fmt_attrs.empty()) fmt_attrs.pop_back();
+
+    return fmt_lib::format("[{}] [{}]", log_name, fmt_attrs);
 }
 
 std::pair<logger, std::shared_ptr<sinks::test_sink_st>> make_logger() {
@@ -182,7 +184,7 @@ TEST_CASE("attribute test - multi threaded") {
     for (auto i = 0; i < n_tasks; ++i) {
         auto task = std::async([&logger, i, n_values] {
             for (auto j = 0; j < n_values; ++j)
-                logger.attrs().put(fmt::format("log_{}_key_{}", i, j), fmt::format("log_{}_value_{}", i, j));
+                logger.attrs().put(fmt_lib::format("log_{}_key_{}", i, j), fmt_lib::format("log_{}_value_{}", i, j));
         });
         tasks.emplace_back(std::move(task));
     }
@@ -194,7 +196,7 @@ TEST_CASE("attribute test - multi threaded") {
     auto log_line = mt_sink->lines().back();
     for (auto i = 0; i < n_tasks; ++i) {
         for (auto j = 0; j < n_values; ++j) {
-            auto search_term = fmt::format("log_{0}_key_{1}:log_{0}_value_{1}", i, j);
+            auto search_term = fmt_lib::format("log_{0}_key_{1}:log_{0}_value_{1}", i, j);
             REQUIRE(log_line.find(search_term) != std::string::npos);
         }
     }

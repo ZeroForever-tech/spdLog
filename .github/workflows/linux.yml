@@ -33,11 +33,7 @@ jobs:
       - name: Setup
         run: |
           apt-get update
-          apt-get install -y curl git pkg-config libsystemd-dev
-          CMAKE_VERSION="3.24.2"
-          curl -sSL https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh -o install-cmake.sh
-          chmod +x install-cmake.sh
-          ./install-cmake.sh --prefix=/usr/local --skip-license
+          apt-get install -y  git pkg-config libsystemd-dev          
       - name: Setup Compiler
         if: matrix.config.compiler == 'clang'
         run: |

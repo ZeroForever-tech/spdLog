@@ -102,7 +102,7 @@ TEST_CASE("rotating_file_logger3", "[rotating_logger]") {
                       spdlog::spdlog_ex);
 }
 
-// test forced rotation of logs
+// test on-demand rotation of logs
 TEST_CASE("rotating_file_logger4", "[rotating_logger]") {
     prepare_logdir();
     size_t max_size = 1024 * 10;
@@ -112,7 +112,7 @@ TEST_CASE("rotating_file_logger4", "[rotating_logger]") {
     logger->info("Test message - pre-rotation");
     logger->flush();
 
-    sink->force_rotation();
+    sink->rotate_now();
 
     logger->info("Test message - post-rotation");
     logger->flush();

@@ -106,7 +106,8 @@ TEST_CASE("rotating_file_logger3", "[rotating_logger]") {
 TEST_CASE("rotating_file_logger4", "[rotating_logger]") {
     prepare_logdir();
     size_t max_size = 1024 * 10;
-    auto sink = std::make_shared<spdlog::sinks::rotating_file_sink_st>(ROTATING_LOG, max_size, 2);
+    spdlog::filename_t basename = SPDLOG_FILENAME_T(ROTATING_LOG);
+    auto sink = std::make_shared<spdlog::sinks::rotating_file_sink_st>(basename, max_size, 2);
     auto logger = std::make_shared<spdlog::logger>("rotating_sink_logger", sink);
 
     logger->info("Test message - pre-rotation");

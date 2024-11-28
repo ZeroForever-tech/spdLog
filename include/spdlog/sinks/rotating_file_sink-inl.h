@@ -71,8 +71,7 @@ SPDLOG_INLINE filename_t rotating_file_sink<Mutex>::filename() {
 
 template <typename Mutex>
 SPDLOG_INLINE void rotating_file_sink<Mutex>::rotate_now() {
-    SPDLOG_TRY { rotate_(); }
-    SPDLOG_CATCH_STD
+    rotate_();
 }
 
 template <typename Mutex>

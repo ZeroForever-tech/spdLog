@@ -58,26 +58,4 @@ jobs:
             -DSPDLOG_SANITIZE_ADDRESS=${{ matrix.config.asan || 'OFF' }} \
             -DSPDLOG_SANITIZE_THREAD=${{ matrix.config.tsan || 'OFF' }}
           make -j 4
-          ctest -j 4 --output-on-failure
-
-  # -----------------------------------------------------------------------
-  # OS X build matrix
-  # -----------------------------------------------------------------------
-  build_osx:
-    runs-on: macOS-latest
-    name: "OS X Clang (C++17, Release)"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build
-        run: |
-          mkdir -p build && cd build
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_STANDARD=17 \
-            -DSPDLOG_BUILD_EXAMPLE=ON \
-            -DSPDLOG_BUILD_WARNINGS=ON \
-            -DSPDLOG_BUILD_BENCH=OFF \
-            -DSPDLOG_BUILD_TESTS=ON \
-            -DSPDLOG_SANITIZE_ADDRESS=OFF
-          make -j 4
-          ctest -j 4 --output-on-failure
+          ctest -j 4 --output-on-failure          

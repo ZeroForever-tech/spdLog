@@ -56,7 +56,7 @@ jobs:
             -D SPDLOG_WCHAR_FILENAMES=${{ matrix.config.WCHAR_FILES }} `
             -D SPDLOG_BUILD_EXAMPLE=${{ matrix.config.BUILD_EXAMPLE }} `
             -D SPDLOG_BUILD_TESTS=ON `
-            -D SPDLOG_BUILD_WARNINGS=${{ matrix.config.FATAL_ERRORS }} `            
+            -D SPDLOG_BUILD_WARNINGS=${{ matrix.config.FATAL_ERRORS }} `
             -D CMAKE_CXX_STANDARD=${{ matrix.config.CXX_STANDARD }} ..
 
       - name: Build

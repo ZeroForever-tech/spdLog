@@ -34,7 +34,6 @@ elseif(CMAKE_CXX_STANDARD LESS 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_SYSTEM_NAME MATCHES "CYGWIN" OR CMAKE_SYSTEM_NAME MATCHES "MSYS" OR CMAKE_SYSTEM_NAME MATCHES "MINGW")
@@ -58,7 +57,6 @@ option(SPDLOG_BUILD_ALL "Build all artifacts" OFF)
 # build shared option
 option(SPDLOG_BUILD_SHARED "Build shared library" OFF)
 
-
 # example options
 option(SPDLOG_BUILD_EXAMPLE "Build example" ${SPDLOG_MASTER_PROJECT})
 
@@ -79,7 +77,6 @@ option(SPDLOG_SYSTEM_INCLUDES "Include as system headers (skip for clang-tidy)."
 option(SPDLOG_INSTALL "Generate the install target" ${SPDLOG_MASTER_PROJECT})
 option(SPDLOG_FMT_EXTERNAL "Use external fmt library instead of of fetching from gitub." OFF)
 option(SPDLOG_NO_EXCEPTIONS "Compile with -fno-exceptions. Call abort() on any spdlog exceptions" OFF)
-
 
 # misc tweakme options
 if(WIN32)
@@ -117,18 +114,17 @@ if(SPDLOG_BUILD_SHARED)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-	# place dlls and libs and executables in the same directory
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
-	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
-	set(CMAKE_PDB_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+    # place dlls and libs and executables in the same directory
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+    set(CMAKE_PDB_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
 
-	# make sure __cplusplus is defined
-	add_compile_options(/Zc:__cplusplus)
-	# enable parallel build for the solution
-	add_compile_options(/MP)
+    # make sure __cplusplus is defined
+    add_compile_options(/Zc:__cplusplus)
+    # enable parallel build for the solution
+    add_compile_options(/MP)
 endif()
-
 
 message(STATUS "spdlog version: ${SPDLOG_VERSION}")
 message(STATUS "spdlog build type: " ${CMAKE_BUILD_TYPE})
@@ -138,7 +134,7 @@ message(STATUS "spdlog fmt external: " ${SPDLOG_FMT_EXTERNAL})
 # ---------------------------------------------------------------------------------------
 # Find {fmt} library
 # ---------------------------------------------------------------------------------------
-if (SPDLOG_FMT_EXTERNAL)
+if(SPDLOG_FMT_EXTERNAL)
     find_package(fmt REQUIRED)
     message(STATUS "Using external fmt lib version: ${fmt_VERSION}")
 else()
@@ -205,8 +201,7 @@ set(SPDLOG_HEADERS
     "include/spdlog/sinks/syslog_sink.h"
     "include/spdlog/sinks/systemd_sink.h"
     "include/spdlog/sinks/tcp_sink.h"
-    "include/spdlog/sinks/udp_sink.h"
-)
+    "include/spdlog/sinks/udp_sink.h")
 
 set(SPDLOG_SRCS
     "src/async_logger.cpp"
@@ -230,20 +225,18 @@ set(SPDLOG_SRCS
     "src/sinks/stdout_sinks.cpp")
 
 if(WIN32)
-    list(APPEND SPDLOG_SRCS
-            "src/details/os_windows.cpp"
-            "src/sinks/wincolor_sink.cpp")
-    list(APPEND SPDLOG_HEADERS
-            "include/spdlog/details/tcp_client_windows.h"
-            "include/spdlog/details/udp_client_windows.h"
-            "include/spdlog/details/windows_include.h"
-            "include/spdlog/sinks/win_eventlog_sink.h"
-            "include/spdlog/sinks/wincolor_sink.h")
+    list(APPEND SPDLOG_SRCS "src/details/os_windows.cpp" "src/sinks/wincolor_sink.cpp")
+    list(
+        APPEND
+        SPDLOG_HEADERS
+        "include/spdlog/details/tcp_client_windows.h"
+        "include/spdlog/details/udp_client_windows.h"
+        "include/spdlog/details/windows_include.h"
+        "include/spdlog/sinks/win_eventlog_sink.h"
+        "include/spdlog/sinks/wincolor_sink.h")
 else()
     list(APPEND SPDLOG_SRCS "src/details/os_unix.cpp")
-    list(APPEND SPDLOG_HEADERS
-            "include/spdlog/details/tcp_client_unix.h"
-            "include/spdlog/details/udp_client_unix.h")
+    list(APPEND SPDLOG_HEADERS "include/spdlog/details/tcp_client_unix.h" "include/spdlog/details/udp_client_unix.h")
 endif()
 
 # Generate spdlog_config.h based on the current configuration
@@ -275,14 +268,14 @@ endif()
 
 set_target_properties(spdlog PROPERTIES PUBLIC_HEADER "${SPDLOG_HEADERS}")
 
-target_include_directories(spdlog ${SPDLOG_INCLUDES_LEVEL} PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
-         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+target_include_directories(spdlog ${SPDLOG_INCLUDES_LEVEL} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
+                                                                  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
 target_link_libraries(spdlog PUBLIC Threads::Threads)
 target_link_libraries(spdlog PUBLIC fmt::fmt)
 spdlog_enable_warnings(spdlog)
-set_target_properties(spdlog PROPERTIES VERSION ${SPDLOG_VERSION} SOVERSION  ${SPDLOG_VERSION_MAJOR}.${SPDLOG_VERSION_MINOR})
+set_target_properties(spdlog PROPERTIES VERSION ${SPDLOG_VERSION} SOVERSION
+                                                                  ${SPDLOG_VERSION_MAJOR}.${SPDLOG_VERSION_MINOR})
 set_target_properties(spdlog PROPERTIES DEBUG_POSTFIX d)
 
 # set source groups for visual studio
@@ -298,7 +291,6 @@ endif()
 if(ANDROID)
     target_link_libraries(spdlog PUBLIC log)
 endif()
-
 
 # ---------------------------------------------------------------------------------------
 # If exceptions are disabled, disable them in the bundled fmt as well
@@ -389,8 +381,7 @@ if(SPDLOG_INSTALL)
     # ---------------------------------------------------------------------------------------
     include(cmake/spdlogCPack.cmake)
 
-    # Install spdlog_config.h file
-    # Assume your tweakme.h.in is located in the same directory as CMakeLists.txt
+    # Install spdlog_config.h file Assume your tweakme.h.in is located in the same directory as CMakeLists.txt
     set(TWEAKME_IN "${CMAKE_CURRENT_SOURCE_DIR}/tweakme.h.in")
     set(TWEAKME_OUT "${CMAKE_CURRENT_BINARY_DIR}/include/spdlog/tweakme.h")
 endif()

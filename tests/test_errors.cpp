@@ -18,7 +18,6 @@ protected:
 };
 struct custom_ex {};
 
-
 TEST_CASE("default_error_handler", "[errors]") {
     prepare_logdir();
     spdlog::filename_t filename = SPDLOG_FILENAME_T(SIMPLE_LOG);

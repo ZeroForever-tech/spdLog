@@ -161,7 +161,6 @@ void async_example() {
 // {:p} - don't print the position on each line start.
 // {:n} - don't split the output to lines.
 
-
 #include "spdlog/fmt/bin_to_hex.h"
 void binary_example() {
     std::vector<char> buf;
@@ -237,7 +236,6 @@ struct my_type {
     explicit my_type(int i)
         : i(i) {}
 };
-
 
 template <>
 struct fmt::formatter<my_type> : fmt::formatter<std::string> {

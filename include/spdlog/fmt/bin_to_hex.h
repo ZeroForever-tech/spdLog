@@ -203,4 +203,4 @@ struct formatter<spdlog::details::dump_info<T>, char> {
         }
     }
 };
-}  // namespace std
+}  // namespace fmt

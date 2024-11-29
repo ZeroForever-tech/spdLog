@@ -81,8 +81,7 @@ TEST_CASE("dir_name", "[create_dir]") {
     // clang-format off
     #include <windows.h>
     #include <fileapi.h>
-    // clang-format on
-
+// clang-format on
 
 std::string get_full_path(const std::string &relative_folder_path) {
     char full_path[MAX_PATH];

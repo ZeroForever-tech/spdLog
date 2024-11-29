@@ -21,7 +21,6 @@
     #include <version>
 #endif
 
-
 #if defined(SPDLOG_SHARED_LIB)
     #if defined(_WIN32)
         #ifdef spdlog_EXPORTS
@@ -39,10 +38,10 @@
 #include "fmt/fmt.h"
 
 #define SPDLOG_FMT_RUNTIME(format_string) fmt::runtime(format_string)
-    #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
-    #if defined(SPDLOG_WCHAR_FILENAMES)
-        #include "fmt/xchar.h"
-    #endif
+#define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
+#if defined(SPDLOG_WCHAR_FILENAMES)
+    #include "fmt/xchar.h"
+#endif
 
 #ifndef SPDLOG_FUNCTION
     #define SPDLOG_FUNCTION static_cast<const char *>(__FUNCTION__)

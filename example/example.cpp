@@ -161,8 +161,8 @@ void async_example() {
 // {:p} - don't print the position on each line start.
 // {:n} - don't split the output to lines.
 
-#if !defined SPDLOG_USE_STD_FORMAT || defined(_MSC_VER)
-    #include "spdlog/fmt/bin_to_hex.h"
+
+#include "spdlog/fmt/bin_to_hex.h"
 void binary_example() {
     std::vector<char> buf;
     for (int i = 0; i < 80; i++) {
@@ -177,25 +177,13 @@ void binary_example() {
     // logger->info("hexdump style: {:a}", spdlog::to_hex(buf));
     // logger->info("hexdump style, 20 chars per line {:a}", spdlog::to_hex(buf, 20));
 }
-#else
-void binary_example() {
-    // not supported with std::format yet
-}
-#endif
 
 // Log a vector of numbers
-#ifndef SPDLOG_USE_STD_FORMAT
-    #include "fmt/ranges.h"
+#include "fmt/ranges.h"
 void vector_example() {
     std::vector<int> vec = {1, 2, 3};
     spdlog::info("Vector example: {}", vec);
 }
-
-#else
-void vector_example() {}
-#endif
-
-// ! DSPDLOG_USE_STD_FORMAT
 
 // Compile time log levels.
 // define SPDLOG_ACTIVE_LEVEL to required level (e.g. SPDLOG_LEVEL_TRACE)
@@ -250,22 +238,13 @@ struct my_type {
         : i(i) {}
 };
 
-#ifndef SPDLOG_USE_STD_FORMAT  // when using fmtlib
+
 template <>
 struct fmt::formatter<my_type> : fmt::formatter<std::string> {
     auto format(my_type my, format_context &ctx) const -> decltype(ctx.out()) {
         return fmt::format_to(ctx.out(), "[my_type i={}]", my.i);
     }
 };
-
-#else  // when using std::format
-template <>
-struct std::formatter<my_type> : std::formatter<std::string> {
-    auto format(my_type my, format_context &ctx) const -> decltype(ctx.out()) {
-        return format_to(ctx.out(), "[my_type i={}]", my.i);
-    }
-};
-#endif
 
 void user_defined_example() { spdlog::info("user defined type: {}", my_type(14)); }
 

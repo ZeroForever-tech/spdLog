@@ -21,9 +21,6 @@
     #include <version>
 #endif
 
-#ifdef SPDLOG_USE_STD_FORMAT
-    #include <format>
-#endif
 
 #if defined(SPDLOG_SHARED_LIB)
     #if defined(_WIN32)
@@ -41,16 +38,11 @@
 
 #include "fmt/fmt.h"
 
-#if !defined(SPDLOG_USE_STD_FORMAT) && FMT_VERSION >= 80000  // backward compatibility with fmt versions older than 8
-    #define SPDLOG_FMT_RUNTIME(format_string) fmt::runtime(format_string)
+#define SPDLOG_FMT_RUNTIME(format_string) fmt::runtime(format_string)
     #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)
     #if defined(SPDLOG_WCHAR_FILENAMES)
         #include "fmt/xchar.h"
     #endif
-#else
-    #define SPDLOG_FMT_RUNTIME(format_string) format_string
-    #define SPDLOG_FMT_STRING(format_string) format_string
-#endif
 
 #ifndef SPDLOG_FUNCTION
     #define SPDLOG_FUNCTION static_cast<const char *>(__FUNCTION__)
@@ -98,29 +90,14 @@ using err_handler = std::function<void(const std::string &err_msg)>;
 using string_view_t = std::basic_string_view<char>;
 using wstring_view_t = std::basic_string_view<wchar_t>;
 
-#ifdef SPDLOG_USE_STD_FORMAT
-namespace fmt_lib = std;
-using memory_buf_t = std::string;
-using wmemory_buf_t = std::wstring;
-
-template <typename... Args>
-    #if __cpp_lib_format >= 202207L
-        using format_string_t = std::format_string<Args...>;
-    #else
-        using format_string_t = std::string_view;
-    #endif
-
-    #define SPDLOG_BUF_TO_STRING(x) x
-#else  // use fmt lib instead of std::format
 namespace fmt_lib = fmt;
-
 using memory_buf_t = fmt::basic_memory_buffer<char, 250>;
+using wmemory_buf_t = fmt::basic_memory_buffer<wchar_t, 250>;
+
 template <typename... Args>
 using format_string_t = fmt::format_string<Args...>;
-using wmemory_buf_t = fmt::basic_memory_buffer<wchar_t, 250>;
-    #define SPDLOG_BUF_TO_STRING(x) fmt::to_string(x)
-#endif  // SPDLOG_USE_STD_FORMAT
 
+#define SPDLOG_BUF_TO_STRING(x) fmt::to_string(x)
 #define SPDLOG_LEVEL_TRACE 0
 #define SPDLOG_LEVEL_DEBUG 1
 #define SPDLOG_LEVEL_INFO 2
@@ -231,27 +208,10 @@ namespace details {
 [[nodiscard]] constexpr spdlog::wstring_view_t to_string_view(spdlog::wstring_view_t str) noexcept { return str; }
 #endif
 
-// convert format_string<...> to string_view depending on format lib versions
-#if defined(SPDLOG_USE_STD_FORMAT)
-    #if __cpp_lib_format >= 202207L  // std::format and __cpp_lib_format >= 202207L
-template <typename T, typename... Args>
-[[nodiscard]] constexpr std::basic_string_view<T> to_string_view(std::basic_format_string<T, Args...> fmt) noexcept {
-    return fmt.get();
-}
-    #else  // std::format and __cpp_lib_format < 202207L
-template <typename T, typename... Args>
-[[nodiscard]] constexpr std::basic_string_view<T> to_string_view(std::basic_format_string<T, Args...> fmt) noexcept {
-    return fmt;
-}
-    #endif
-#else  // {fmt} version
-
 template <typename T, typename... Args>
 [[nodiscard]] constexpr fmt::basic_string_view<T> to_string_view(fmt::basic_format_string<T, Args...> fmt) noexcept {
     return fmt;
 }
-
-#endif
 
 }  // namespace details
 }  // namespace spdlog

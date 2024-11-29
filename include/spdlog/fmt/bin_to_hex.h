@@ -88,13 +88,7 @@ inline details::dump_info<It> to_hex(const It range_begin, const It range_end, s
 
 }  // namespace spdlog
 
-namespace
-#ifdef SPDLOG_USE_STD_FORMAT
-    std
-#else
-    fmt
-#endif
-{
+namespace fmt {
 
 template <typename T>
 struct formatter<spdlog::details::dump_info<T>, char> {
@@ -142,13 +136,7 @@ struct formatter<spdlog::details::dump_info<T>, char> {
         constexpr const char *hex_upper = "0123456789ABCDEF";
         constexpr const char *hex_lower = "0123456789abcdef";
         const char *hex_chars = use_uppercase ? hex_upper : hex_lower;
-
-#if !defined(SPDLOG_USE_STD_FORMAT) && FMT_VERSION < 60000
-        auto inserter = ctx.begin();
-#else
         auto inserter = ctx.out();
-#endif
-
         int size_per_line = static_cast<int>(the_range.size_per_line());
         auto start_of_line = the_range.get_begin();
         for (auto i = the_range.get_begin(); i != the_range.get_end(); i++) {

@@ -9,11 +9,6 @@
 #include "../common.h"
 #include "../fmt/fmt.h"
 
-#ifdef SPDLOG_USE_STD_FORMAT
-    #include <charconv>
-    #include <limits>
-#endif
-
 // Some fmt helpers to efficiently format and pad ints and strings
 namespace spdlog {
 namespace details {
@@ -24,27 +19,11 @@ inline void append_string_view(spdlog::string_view_t view, memory_buf_t &dest) {
     dest.append(buf_ptr, buf_ptr + view.size());
 }
 
-#ifdef SPDLOG_USE_STD_FORMAT
-template <typename T>
-inline void append_int(T n, memory_buf_t &dest) {
-    // Buffer should be large enough to hold all digits (digits10 + 1) and a sign
-    constexpr const auto BUF_SIZE = std::numeric_limits<T>::digits10 + 2;
-    char buf[BUF_SIZE];
-
-    auto [ptr, ec] = std::to_chars(buf, buf + BUF_SIZE, n, 10);
-    if (ec == std::errc()) {
-        dest.append(buf, ptr);
-    } else {
-        throw_spdlog_ex("Failed to format int", static_cast<int>(ec));
-    }
-}
-#else
 template <typename T>
 inline void append_int(T n, memory_buf_t &dest) {
     fmt::format_int i(n);
     dest.append(i.data(), i.data() + i.size());
 }
-#endif
 
 template <typename T>
 constexpr unsigned int count_digits_fallback(T n) {
@@ -66,9 +45,7 @@ constexpr unsigned int count_digits_fallback(T n) {
 template <typename T>
 inline unsigned int count_digits(T n) {
     using count_type = typename std::conditional<(sizeof(T) > sizeof(uint32_t)), uint64_t, uint32_t>::type;
-#ifdef SPDLOG_USE_STD_FORMAT
-    return count_digits_fallback(static_cast<count_type>(n));
-#else
+
     return static_cast<unsigned int>(fmt::
     // fmt 7.0.0 renamed the internal namespace to detail.
     // See: https://github.com/fmtlib/fmt/issues/1538
@@ -78,7 +55,6 @@ inline unsigned int count_digits(T n) {
                                          detail
     #endif
                                      ::count_digits(static_cast<count_type>(n)));
-#endif
 }
 
 inline void pad2(int n, memory_buf_t &dest) {

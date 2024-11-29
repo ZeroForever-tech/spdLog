@@ -187,14 +187,9 @@ protected:
     void log_with_format_(source_loc loc, level lvl, const format_string_t<Args...> &fmt, Args &&...args) {
         assert(should_log(lvl));
         SPDLOG_TRY {
-#ifdef SPDLOG_USE_STD_FORMAT
-            auto formatted = std::vformat(fmt, std::make_format_args(args...));
-            sink_it_(details::log_msg(loc, name_, lvl, formatted));
-#else  // use {fmt} lib
             memory_buf_t buf;
             fmt::vformat_to(std::back_inserter(buf), fmt, fmt::make_format_args(args...));
             sink_it_(details::log_msg(loc, name_, lvl, string_view_t(buf.data(), buf.size())));
-#endif
         }
         SPDLOG_LOGGER_CATCH(loc)
     }

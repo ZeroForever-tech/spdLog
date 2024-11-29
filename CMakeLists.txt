@@ -77,18 +77,9 @@ option(SPDLOG_BUILD_WARNINGS "Enable compiler warnings" OFF)
 # install options
 option(SPDLOG_SYSTEM_INCLUDES "Include as system headers (skip for clang-tidy)." OFF)
 option(SPDLOG_INSTALL "Generate the install target" ${SPDLOG_MASTER_PROJECT})
-option(SPDLOG_USE_STD_FORMAT "Use std::format instead of fmt library." OFF)
 option(SPDLOG_FMT_EXTERNAL "Use external fmt library instead of of fetching from gitub." OFF)
-
 option(SPDLOG_NO_EXCEPTIONS "Compile with -fno-exceptions. Call abort() on any spdlog exceptions" OFF)
 
-if(SPDLOG_USE_STD_FORMAT AND CMAKE_CXX_STANDARD LESS 20)
-    message(FATAL_ERROR "SPDLOG_USE_STD_FORMAT must be used with CMAKE_CXX_STANDARD >= 20")
-endif()
-
-if(SPDLOG_USE_STD_FORMAT AND SPDLOG_FMT_EXTERNAL)
-    message(FATAL_ERROR "SPDLOG_USE_STD_FORMAT and SPDLOG_FMT_EXTERNAL are mutually exclusive")
-endif()
 
 # misc tweakme options
 if(WIN32)
@@ -142,19 +133,16 @@ endif()
 message(STATUS "spdlog version: ${SPDLOG_VERSION}")
 message(STATUS "spdlog build type: " ${CMAKE_BUILD_TYPE})
 message(STATUS "spdlog build shared: " ${BUILD_SHARED_LIBS})
-message(STATUS "spdlog use std format: " ${SPDLOG_USE_STD_FORMAT})
 message(STATUS "spdlog fmt external: " ${SPDLOG_FMT_EXTERNAL})
 
 # ---------------------------------------------------------------------------------------
-# Find {fmt} library if not using std::format
+# Find {fmt} library
 # ---------------------------------------------------------------------------------------
-if(NOT SPDLOG_USE_STD_FORMAT)
-    if (SPDLOG_FMT_EXTERNAL)
-        find_package(fmt REQUIRED)
-        message(STATUS "Using external fmt lib version: ${fmt_VERSION}")
-    else()
-        include(cmake/fmtlib.cmake)
-    endif()
+if (SPDLOG_FMT_EXTERNAL)
+    find_package(fmt REQUIRED)
+    message(STATUS "Using external fmt lib version: ${fmt_VERSION}")
+else()
+    include(cmake/fmtlib.cmake)
 endif()
 
 # ---------------------------------------------------------------------------------------
@@ -292,9 +280,7 @@ target_include_directories(spdlog ${SPDLOG_INCLUDES_LEVEL} PUBLIC
          "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
 target_link_libraries(spdlog PUBLIC Threads::Threads)
-if(NOT SPDLOG_USE_STD_FORMAT)
-    target_link_libraries(spdlog PUBLIC fmt::fmt)
-endif()
+target_link_libraries(spdlog PUBLIC fmt::fmt)
 spdlog_enable_warnings(spdlog)
 set_target_properties(spdlog PROPERTIES VERSION ${SPDLOG_VERSION} SOVERSION  ${SPDLOG_VERSION_MAJOR}.${SPDLOG_VERSION_MINOR})
 set_target_properties(spdlog PROPERTIES DEBUG_POSTFIX d)

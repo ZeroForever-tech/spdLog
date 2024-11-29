@@ -27,9 +27,5 @@
 // Disable default logger creation
 #cmakedefine SPDLOG_DISABLE_DEFAULT_LOGGER
 
-// Use std::format instead of fmtlib
-#cmakedefine SPDLOG_USE_STD_FORMAT
-
 // Use external fmtlib instead of bundled
 #cmakedefine SPDLOG_FMT_EXTERNAL
-

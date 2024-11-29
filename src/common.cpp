@@ -26,13 +26,9 @@ spdlog_ex::spdlog_ex(std::string msg)
     : msg_(std::move(msg)) {}
 
 spdlog_ex::spdlog_ex(const std::string &msg, int last_errno) {
-#ifdef SPDLOG_USE_STD_FORMAT
-    msg_ = std::system_error(std::error_code(last_errno, std::generic_category()), msg).what();
-#else
     memory_buf_t outbuf;
     fmt::format_system_error(outbuf, last_errno, msg.c_str());
     msg_ = fmt::to_string(outbuf);
-#endif
 }
 
 const char *spdlog_ex::what() const noexcept { return msg_.c_str(); }

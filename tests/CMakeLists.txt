@@ -52,7 +52,8 @@ set(SPDLOG_UTESTS_SOURCES
     test_source_location.cpp
     test_no_source_location.cpp
     test_log_level.cpp
-    test_include_sinks.cpp)
+    test_include_sinks.cpp
+    test_bin_to_hex.cpp)
 
 if(WIN32)
     list(APPEND SPDLOG_UTESTS_SOURCES test_eventlog.cpp)
@@ -64,10 +65,6 @@ endif()
 
 if(systemd_FOUND)
     list(APPEND SPDLOG_UTESTS_SOURCES test_systemd.cpp)
-endif()
-
-if(NOT SPDLOG_USE_STD_FORMAT)
-    list(APPEND SPDLOG_UTESTS_SOURCES test_bin_to_hex.cpp)
 endif()
 
 enable_testing()

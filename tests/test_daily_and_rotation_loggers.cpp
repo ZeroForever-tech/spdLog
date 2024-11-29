@@ -6,11 +6,7 @@
 #include "spdlog/sinks/daily_file_sink.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 
-#ifdef SPDLOG_USE_STD_FORMAT
-using filename_memory_buf_t = std::basic_string<spdlog::filename_t::value_type>;
-#else
-using filename_memory_buf_t = fmt::basic_memory_buffer<spdlog::filename_t::value_type, 250>;
-#endif
+using filename_memory_buf_t = spdlog::memory_buf_t;
 
 #ifdef SPDLOG_WCHAR_FILENAMES
 std::string filename_buf_to_utf8string(const filename_memory_buf_t &w) {

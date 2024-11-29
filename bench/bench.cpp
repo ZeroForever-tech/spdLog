@@ -12,12 +12,7 @@
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/spdlog.h"
 
-#if defined(SPDLOG_USE_STD_FORMAT)
-    #include <format>
-#else
-    #include <fmt/format.h>
-#endif
-
+#include <fmt/format.h>
 #include <atomic>
 #include <cstdlib>  // EXIT_FAILURE
 #include <memory>

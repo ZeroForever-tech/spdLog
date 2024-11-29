@@ -18,7 +18,7 @@ protected:
 };
 struct custom_ex {};
 
-#if !defined(SPDLOG_USE_STD_FORMAT)  // std formt doesn't fully support runtime format strings
+
 TEST_CASE("default_error_handler", "[errors]") {
     prepare_logdir();
     spdlog::filename_t filename = SPDLOG_FILENAME_T(SIMPLE_LOG);
@@ -45,7 +45,6 @@ TEST_CASE("custom_error_handler", "[errors]") {
     logger->info("Good message #2");
     require_message_count(SIMPLE_LOG, 2);
 }
-#endif
 
 TEST_CASE("default_error_handler2", "[errors]") {
     spdlog::drop_all();
@@ -61,7 +60,6 @@ TEST_CASE("flush_error_handler", "[errors]") {
     REQUIRE_THROWS_AS(logger->flush(), custom_ex);
 }
 
-#if !defined(SPDLOG_USE_STD_FORMAT)  // std formt doesn't fully support runtime format strings
 TEST_CASE("async_error_handler", "[errors]") {
     prepare_logdir();
     std::string err_msg("log failed with some msg");
@@ -86,7 +84,6 @@ TEST_CASE("async_error_handler", "[errors]") {
     require_message_count(SIMPLE_ASYNC_LOG, 2);
     REQUIRE(file_contents("test_logs/custom_err.txt") == err_msg);
 }
-#endif
 
 // Make sure async error handler is executed
 TEST_CASE("async_error_handler2", "[errors]") {

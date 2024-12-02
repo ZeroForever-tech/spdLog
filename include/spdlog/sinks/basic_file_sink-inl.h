@@ -28,7 +28,6 @@ SPDLOG_INLINE const filename_t &basic_file_sink<Mutex>::filename() const {
 
 template <typename Mutex>
 SPDLOG_INLINE void basic_file_sink<Mutex>::truncate() {
-    file_helper_.close();
     file_helper_.reopen(true);
 }
 

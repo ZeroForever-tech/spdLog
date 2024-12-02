@@ -28,6 +28,7 @@ SPDLOG_INLINE const filename_t &basic_file_sink<Mutex>::filename() const {
 
 template <typename Mutex>
 SPDLOG_INLINE void basic_file_sink<Mutex>::truncate() {
+    std::lock_guard<Mutex> lock(base_sink<Mutex>::mutex_);
     file_helper_.reopen(true);
 }
 

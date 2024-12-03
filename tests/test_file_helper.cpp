@@ -82,7 +82,7 @@ TEST_CASE("file_helper_split_by_extension", "[file_helper::split_by_extension()]
     test_split_ext(SPDLOG_FILENAME_T("/aaa/bb.d/mylog"), SPDLOG_FILENAME_T("/aaa/bb.d/mylog"), SPDLOG_FILENAME_T(""));
     test_split_ext(SPDLOG_FILENAME_T("/aaa/bb.d/mylog.txt"), SPDLOG_FILENAME_T("/aaa/bb.d/mylog"), SPDLOG_FILENAME_T(".txt"));
     test_split_ext(SPDLOG_FILENAME_T("aaa/bbb/ccc/mylog.txt"), SPDLOG_FILENAME_T("aaa/bbb/ccc/mylog"), SPDLOG_FILENAME_T(".txt"));
-    test_split_ext(SPDLOG_FILENAME_T("aaa/bbb/ccc/mylog."), SPDLOG_FILENAME_T("aaa/bbb/ccc/mylog."), SPDLOG_FILENAME_T(""));
+    test_split_ext(SPDLOG_FILENAME_T("aaa/bbb/ccc/mylog."), SPDLOG_FILENAME_T("aaa/bbb/ccc/mylog"), SPDLOG_FILENAME_T("."));
     test_split_ext(SPDLOG_FILENAME_T("aaa/bbb/ccc/.mylog.txt"), SPDLOG_FILENAME_T("aaa/bbb/ccc/.mylog"),
                    SPDLOG_FILENAME_T(".txt"));
     test_split_ext(SPDLOG_FILENAME_T("/aaa/bbb/ccc/mylog.txt"), SPDLOG_FILENAME_T("/aaa/bbb/ccc/mylog"),
@@ -92,7 +92,7 @@ TEST_CASE("file_helper_split_by_extension", "[file_helper::split_by_extension()]
     test_split_ext(SPDLOG_FILENAME_T(".././mylog.txt"), SPDLOG_FILENAME_T(".././mylog"), SPDLOG_FILENAME_T(".txt"));
     test_split_ext(SPDLOG_FILENAME_T(".././mylog.txt/xxx"), SPDLOG_FILENAME_T(".././mylog.txt/xxx"), SPDLOG_FILENAME_T(""));
     test_split_ext(SPDLOG_FILENAME_T("/mylog.txt"), SPDLOG_FILENAME_T("/mylog"), SPDLOG_FILENAME_T(".txt"));
-    test_split_ext(SPDLOG_FILENAME_T("//mylog.txt"), SPDLOG_FILENAME_T("//mylog"), SPDLOG_FILENAME_T(".txt"));
+    test_split_ext(SPDLOG_FILENAME_T("///mylog.txt"), SPDLOG_FILENAME_T("///mylog"), SPDLOG_FILENAME_T(".txt"));
     test_split_ext(SPDLOG_FILENAME_T(""), SPDLOG_FILENAME_T(""), SPDLOG_FILENAME_T(""));
     test_split_ext(SPDLOG_FILENAME_T("."), SPDLOG_FILENAME_T("."), SPDLOG_FILENAME_T(""));
     test_split_ext(SPDLOG_FILENAME_T("..txt"), SPDLOG_FILENAME_T("."), SPDLOG_FILENAME_T(".txt"));

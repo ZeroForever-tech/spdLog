@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <filesystem>
 
 #include "./source_loc.h"
 
@@ -47,8 +48,13 @@ namespace sinks {
 class sink;
 }
 
-using filename_t = std::string;
-#define SPDLOG_FILENAME_T(s) s
+using filename_t = std::filesystem::path;
+#ifdef _WIN32 // Add L prefix to string literals on Windows when dealing with filenames
+    #define SPDLOG_FILENAME_T_INNER(s) L##s
+    #define SPDLOG_FILENAME_T(s) SPDLOG_FILENAME_T_INNER(s)
+#else   
+    #define SPDLOG_FILENAME_T(s) s
+#endif
 
 using log_clock = std::chrono::system_clock;
 using sink_ptr = std::shared_ptr<sinks::sink>;
@@ -64,7 +70,6 @@ using wmemory_buf_t = fmt::basic_memory_buffer<wchar_t, 250>;
 template <typename... Args>
 using format_string_t = fmt::format_string<Args...>;
 
-#define SPDLOG_BUF_TO_STRING(x) fmt::to_string(x)
 #define SPDLOG_LEVEL_TRACE 0
 #define SPDLOG_LEVEL_DEBUG 1
 #define SPDLOG_LEVEL_INFO 2

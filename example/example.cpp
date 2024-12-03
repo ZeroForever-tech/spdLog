@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright(c) 2015 Gabi Melman.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
@@ -6,6 +6,8 @@
 
 #include <chrono>
 #include <cstdio>
+
+#include "spdlog/details/windows_include.h"
 
 void load_levels_example();
 void stdout_logger_example();
@@ -32,9 +34,26 @@ void replace_default_logger_example();
 #include "spdlog/version.h"
 
 int main(int, char *[]) {
+    SetConsoleOutputCP(CP_UTF8);
     // Log levels can be loaded from argv/env using "SPDLOG_LEVEL"
-    load_levels_example();
-    SPDLOG_INFO("This message should be displayed..");
+
+    //spdlog::filename_t x = L"logs/hourlyעכעכ.txt";
+    std::filesystem::path const x{L"\xd83d\x4000"};
+    try {
+        auto my_s = spdlog::details::os::filename_to_str(x);
+        spdlog::info("mystring: {}", my_s);
+
+
+        auto s = x.u8string();
+        spdlog::info("u8string: {}", s);
+
+       
+
+    } catch (const std::exception &e) {
+        SPDLOG_INFO("EXCEPTION {}", e.what());
+    }
+    return 0;
+
     spdlog::info("Welcome to spdlog version {}.{}.{} !", SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
     spdlog::warn("Easy padding in numbers like {:08d}", 12);
     spdlog::critical("Support for int: {0:d};  hex: {0:x};  oct: {0:o}; bin: {0:b}", 42);
@@ -114,9 +133,12 @@ void rotating_example() {
 }
 
 #include "spdlog/sinks/daily_file_sink.h"
+#include "spdlog/sinks/hourly_file_sink.h"
 void daily_example() {
+    using namespace spdlog::sinks;
     // Create a daily logger - a new file is created every day on 2:30am.
     auto daily_logger = spdlog::daily_logger_mt("daily_logger", "logs/daily.txt", 2, 30);
+    auto hourly_logger = spdlog::hourly_logger_mt("hourly_logger", L"logs/hourlyגבי.txt", 0);
 }
 
 #include "spdlog/sinks/callback_sink.h"
@@ -283,10 +305,7 @@ public:
         dest.append(some_txt.data(), some_txt.data() + some_txt.size());
     }
 
-    [[nodiscard]]
-    std::unique_ptr<custom_flag_formatter> clone() const override {
-        return std::make_unique<my_formatter_flag>();
-    }
+    [[nodiscard]] std::unique_ptr<custom_flag_formatter> clone() const override { return std::make_unique<my_formatter_flag>(); }
 };
 
 void custom_flags_example() {
@@ -299,16 +318,20 @@ void custom_flags_example() {
 void file_events_example() {
     // pass the spdlog::file_event_handlers to file sinks for open/close log file notifications
     spdlog::file_event_handlers handlers;
-    handlers.before_open = [](spdlog::filename_t filename) { spdlog::info("Before opening {}", filename); };
+    handlers.before_open = [](spdlog::filename_t filename) {
+        // spdlog::info("Before opening {}", filename);
+    };
     handlers.after_open = [](spdlog::filename_t filename, std::FILE *fstream) {
-        spdlog::info("After opening {}", filename);
+        // spdlog::info("After opening {}", filename);
         fputs("After opening\n", fstream);
     };
     handlers.before_close = [](spdlog::filename_t filename, std::FILE *fstream) {
-        spdlog::info("Before closing {}", filename);
+        // spdlog::info("Before closing {}", filename);
         fputs("Before closing\n", fstream);
     };
-    handlers.after_close = [](spdlog::filename_t filename) { spdlog::info("After closing {}", filename); };
+    handlers.after_close = [](spdlog::filename_t filename) {
+        // spdlog::info("After closing {}", filename);
+    };
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/events-sample.txt", true, handlers);
     spdlog::logger my_logger("some_logger", file_sink);
     my_logger.info("Some log line");

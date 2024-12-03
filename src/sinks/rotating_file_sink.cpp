@@ -7,6 +7,7 @@
 #include <mutex>
 #include <string>
 #include <tuple>
+#include <sstream>
 
 #include "spdlog/common.h"
 #include "spdlog/details/file_helper.h"
@@ -51,8 +52,11 @@ filename_t rotating_file_sink<Mutex>::calc_filename(const filename_t &filename, 
 
     filename_t basename;
     filename_t ext;
-    std::tie(basename, ext) = details::file_helper::split_by_extension(filename);
-    return fmt_lib::format(SPDLOG_FMT_STRING(SPDLOG_FILENAME_T("{}.{}{}")), basename, index, ext);
+    std::tie(basename, ext) = details::file_helper::split_by_extension(filename);    
+    std::basic_ostringstream<filename_t::value_type> oss;
+    oss << basename.native() << "." << index << ext.native();
+    return oss.str();
+    //return fmt_lib::format(SPDLOG_FMT_STRING(SPDLOG_FILENAME_T("{}.{}{}")), basename, index, ext);
 }
 
 template <typename Mutex>
@@ -130,10 +134,8 @@ void rotating_file_sink<Mutex>::rotate_() {
 // delete the target if exists, and rename the src file  to target
 // return true on success, false otherwise.
 template <typename Mutex>
-bool rotating_file_sink<Mutex>::rename_file_(const filename_t &src_filename, const filename_t &target_filename) {
-    // try to delete the target file in case it already exists.
-    (void)details::os::remove(target_filename);
-    return details::os::rename(src_filename, target_filename) == 0;
+bool rotating_file_sink<Mutex>::rename_file_(const filename_t &src_filename, const filename_t &target_filename) noexcept{    
+    return details::os::rename(src_filename, target_filename);
 }
 
 }  // namespace sinks

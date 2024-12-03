@@ -29,8 +29,12 @@ struct hourly_filename_calculator {
     static filename_t calc_filename(const filename_t &filename, const tm &now_tm) {
         filename_t basename, ext;
         std::tie(basename, ext) = details::file_helper::split_by_extension(filename);
-        return fmt_lib::format(SPDLOG_FILENAME_T("{}_{:04d}-{:02d}-{:02d}_{:02d}{}"), basename, now_tm.tm_year + 1900,
-                               now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, ext);
+        std::basic_ostringstream<filename_t::value_type> oss;
+        auto sep = SPDLOG_FILENAME_T('-');
+        oss << basename.native() << sep << std::setfill(SPDLOG_FILENAME_T('0')) << std::setw(4) << now_tm.tm_year + 1900 << sep
+            << std::setw(2) << now_tm.tm_mon + 1 << sep << std::setw(2) << now_tm.tm_mday << sep << std::setw(2) << now_tm.tm_hour
+            << ext.native();
+        return oss.str();        
     }
 };
 

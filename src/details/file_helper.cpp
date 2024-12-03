@@ -1,12 +1,13 @@
 // Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
-#include "spdlog/details/file_helper.h"
 
 #include <cerrno>
 #include <cstdio>
 #include <utility>
+#include <filesystem>
 
+#include "spdlog/details/file_helper.h"
 #include "spdlog/common.h"
 #include "spdlog/details/os.h"
 
@@ -112,7 +113,7 @@ const filename_t &file_helper::filename() const { return filename_; }
 //
 // "mylog.txt" => ("mylog", ".txt")
 // "mylog" => ("mylog", "")
-// "mylog." => ("mylog.", "")
+// "mylog." => ("mylog", ".")
 // "/dir1/dir2/mylog.txt" => ("/dir1/dir2/mylog", ".txt")
 //
 // the starting dot in filenames is ignored (hidden files):
@@ -120,23 +121,10 @@ const filename_t &file_helper::filename() const { return filename_; }
 // ".mylog" => (".mylog". "")
 // "my_folder/.mylog" => ("my_folder/.mylog", "")
 // "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-std::tuple<filename_t, filename_t> file_helper::split_by_extension(const filename_t &fname) {
-    auto ext_index = fname.rfind('.');
-
-    // no valid extension found - return whole path and empty string as
-    // extension
-    if (ext_index == filename_t::npos || ext_index == 0 || ext_index == fname.size() - 1) {
-        return std::make_tuple(fname, filename_t());
-    }
-
-    // treat cases like "/etc/rc.d/somelogfile or "/abc/.hiddenfile"
-    auto folder_index = fname.find_last_of(details::os::folder_seps_filename);
-    if (folder_index != filename_t::npos && folder_index >= ext_index - 1) {
-        return std::make_tuple(fname, filename_t());
-    }
-
-    // finally - return a valid base and extension tuple
-    return std::make_tuple(fname.substr(0, ext_index), fname.substr(ext_index));
+std::tuple<filename_t, filename_t> file_helper::split_by_extension(const filename_t &fname) {        
+    const auto ext = fname.extension();
+    auto without_ext = filename_t(fname).replace_extension();    
+    return std::make_tuple(without_ext, ext);    
 }
 
 }  // namespace details

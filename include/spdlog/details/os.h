@@ -4,7 +4,6 @@
 #pragma once
 
 #include <ctime>  // std::time_t
-
 #include "../common.h"
 
 namespace spdlog {
@@ -24,7 +23,7 @@ SPDLOG_API std::tm gmtime() noexcept;
 // eol definition and folder separator for the current os
 #ifdef _WIN32
 constexpr static const char *default_eol = "\r\n";
-constexpr static const filename_t::value_type folder_seps_filename[] = SPDLOG_FILENAME_T("\\/");
+constexpr static const filename_t::value_type folder_seps_filename[] = L"\\/";
 #else
 constexpr static const char *default_eol = "\n";
 constexpr static const filename_t::value_type folder_seps_filename[] = SPDLOG_FILENAME_T("/");
@@ -33,14 +32,15 @@ constexpr static const filename_t::value_type folder_seps_filename[] = SPDLOG_FI
 // fopen_s on non windows for writing
 SPDLOG_API bool fopen_s(FILE **fp, const filename_t &filename, const filename_t &mode);
 
-// Remove filename. return 0 on success
-SPDLOG_API int remove(const filename_t &filename) noexcept;
+// Remove filename. return true on success
+SPDLOG_API bool remove(const filename_t &filename);
 
 // Remove file if exists. return 0 on success
 // Note: Non atomic (might return failure to delete if concurrently deleted by other process/thread)
-SPDLOG_API int remove_if_exists(const filename_t &filename) noexcept;
+SPDLOG_API bool remove_if_exists(const filename_t &filename) ;
 
-SPDLOG_API int rename(const filename_t &filename1, const filename_t &filename2) noexcept;
+// Rename file. return true on success
+SPDLOG_API bool rename(const filename_t &filename1, const filename_t &filename2) noexcept;
 
 // Return if file exists.
 SPDLOG_API bool path_exists(const filename_t &filename) noexcept;
@@ -63,6 +63,7 @@ SPDLOG_API size_t thread_id() noexcept;
 // See https://github.com/gabime/spdlog/issues/609
 SPDLOG_API void sleep_for_millis(unsigned int milliseconds) noexcept;
 
+// Try tp convert wstring filename to string. Return "??" if failed
 SPDLOG_API std::string filename_to_str(const filename_t &filename);
 
 SPDLOG_API int pid() noexcept;

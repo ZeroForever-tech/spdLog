@@ -27,7 +27,7 @@ std::string file_contents(const std::string &filename) {
     return std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
 }
 
-std::size_t count_lines(const std::string &filename) {
+std::size_t count_lines(const spdlog::filename_t &filename) {
     std::ifstream ifs(filename);
     if (!ifs) {
         throw std::runtime_error("Failed open file ");
@@ -39,7 +39,7 @@ std::size_t count_lines(const std::string &filename) {
     return counter;
 }
 
-void require_message_count(const std::string &filename, const std::size_t messages) {
+void require_message_count(const std::filesystem::path &filename, const std::size_t messages) {
     if (strlen(spdlog::details::os::default_eol) == 0) {
         REQUIRE(count_lines(filename) == 1);
     } else {

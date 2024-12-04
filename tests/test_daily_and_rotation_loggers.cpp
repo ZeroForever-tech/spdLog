@@ -81,18 +81,19 @@ TEST_CASE("rotating_file_sink::calc_filename3", "[rotating_file_sink]") {
 // regex supported only from gcc 4.9 and above
 #if defined(_MSC_VER) || !(__GNUC__ <= 4 && __GNUC_MINOR__ < 9)
 
-    #include <regex>
+#include <regex>
 
 TEST_CASE("daily_file_sink::daily_filename_calculator", "[daily_file_sink]") {
     // daily_YYYY-MM-DD_hh-mm.txt
-    // auto filename =
-    //    spdlog::sinks::daily_filename_calculator::calc_filename(SPDLOG_FILENAME_T("daily.txt"),
-    //    spdlog::details::os::localtime());
-    //// date regex based on https://www.regular-expressions.info/dates.html
-    // std::basic_regex<spdlog::filename_t::value_type> re(
-    //     SPDLOG_FILENAME_T(R"(^daily_(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])\.txt$)"));
-    // std::match_results<spdlog::filename_t::const_iterator> match;
-    // REQUIRE(std::regex_match(filename, match, re));
+     auto filename =
+        spdlog::sinks::daily_filename_calculator::calc_filename(SPDLOG_FILENAME_T("daily.txt"),
+        spdlog::details::os::localtime());
+    // date regex based on https://www.regular-expressions.info/dates.html
+     std::basic_regex<spdlog::filename_t::value_type> re(
+         SPDLOG_FILENAME_T(R"(^daily_(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])\.txt$)"));
+     
+     std::match_results<spdlog::filename_t::string_type::const_iterator> match;
+     REQUIRE(std::regex_match(filename.native(), match, re));     
 }
 #endif
 

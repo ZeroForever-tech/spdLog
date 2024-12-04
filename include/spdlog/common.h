@@ -48,14 +48,15 @@ namespace sinks {
 class sink;
 }
 
-using filename_t = std::filesystem::path;
-#ifdef _WIN32 // Add L prefix to string literals on Windows when dealing with filenames
+#ifdef _WIN32 
+    // In windows, add L prefix for filename literals (e.g. L"filename.txt")
     #define SPDLOG_FILENAME_T_INNER(s) L##s
     #define SPDLOG_FILENAME_T(s) SPDLOG_FILENAME_T_INNER(s)
 #else   
     #define SPDLOG_FILENAME_T(s) s
 #endif
 
+using filename_t = std::filesystem::path;
 using log_clock = std::chrono::system_clock;
 using sink_ptr = std::shared_ptr<sinks::sink>;
 using sinks_init_list = std::initializer_list<sink_ptr>;

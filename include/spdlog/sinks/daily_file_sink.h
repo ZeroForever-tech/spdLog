@@ -30,10 +30,8 @@ struct daily_filename_calculator {
         filename_t basename, ext;
         std::tie(basename, ext) = details::file_helper::split_by_extension(filename);
         std::basic_ostringstream<filename_t::value_type> oss;        
-        auto sep = SPDLOG_FILENAME_T('-');
-        oss << basename.native() << SPDLOG_FILENAME_T('_') << std::setfill(SPDLOG_FILENAME_T('0')) << std::setw(4)
-            << now_tm.tm_year + 1900 << sep
-            << std::setw(2) << now_tm.tm_mon + 1 << sep << std::setw(2) << now_tm.tm_mday << ext.native();        
+        oss << basename.native() << '_' << std::setfill(SPDLOG_FILENAME_T('0')) << std::setw(4) << now_tm.tm_year + 1900 << '-'
+            << std::setw(2) << now_tm.tm_mon + 1 << '-' << std::setw(2) << now_tm.tm_mday << ext.native();
         return oss.str();        
     }
 };

@@ -54,7 +54,7 @@ filename_t rotating_file_sink<Mutex>::calc_filename(const filename_t &filename, 
     filename_t ext;
     std::tie(basename, ext) = details::file_helper::split_by_extension(filename);    
     std::basic_ostringstream<filename_t::value_type> oss;
-    oss << basename.native() << "." << index << ext.native();
+    oss << basename.native() << '.' << index << ext.native();
     return oss.str();
     //return fmt_lib::format(SPDLOG_FMT_STRING(SPDLOG_FILENAME_T("{}.{}{}")), basename, index, ext);
 }

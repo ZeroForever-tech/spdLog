@@ -5,6 +5,7 @@
 #include "includes.h"
 #include "spdlog/sinks/daily_file_sink.h"
 #include "spdlog/sinks/rotating_file_sink.h"
+#include "spdlog/sinks/hourly_file_sink.h"
 
 using filename_memory_buf_t = spdlog::memory_buf_t;
 
@@ -94,6 +95,19 @@ TEST_CASE("daily_file_sink::daily_filename_calculator", "[daily_file_sink]") {
      
      std::match_results<spdlog::filename_t::string_type::const_iterator> match;
      REQUIRE(std::regex_match(filename.native(), match, re));     
+}
+
+
+TEST_CASE("hourly_file_sink::hourly_filename_calculator", "[hrouly_file_sink]") {
+    // daily_YYYY-MM-DD_hh-mm.txt
+    auto filename =
+        spdlog::sinks::hourly_filename_calculator::calc_filename(SPDLOG_FILENAME_T("hourly.txt"), spdlog::details::os::localtime());
+    // date regex based on https://www.regular-expressions.info/dates.html
+    std::basic_regex<spdlog::filename_t::value_type> re(
+        SPDLOG_FILENAME_T(R"(^hourly_(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])_\d\d\.txt$)"));
+
+    std::match_results<spdlog::filename_t::string_type::const_iterator> match;
+    REQUIRE(std::regex_match(filename.native(), match, re));
 }
 #endif
 

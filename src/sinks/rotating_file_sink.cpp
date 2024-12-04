@@ -12,7 +12,6 @@
 #include "spdlog/common.h"
 #include "spdlog/details/file_helper.h"
 #include "spdlog/details/os.h"
-// #include "spdlog/fmt/fmt.h"
 
 namespace spdlog {
 namespace sinks {
@@ -55,8 +54,7 @@ filename_t rotating_file_sink<Mutex>::calc_filename(const filename_t &filename, 
     std::tie(basename, ext) = details::file_helper::split_by_extension(filename);    
     std::basic_ostringstream<filename_t::value_type> oss;
     oss << basename.native() << '.' << index << ext.native();
-    return oss.str();
-    //return fmt_lib::format(SPDLOG_FMT_STRING(SPDLOG_FILENAME_T("{}.{}{}")), basename, index, ext);
+    return oss.str();    
 }
 
 template <typename Mutex>

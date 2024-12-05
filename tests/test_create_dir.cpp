@@ -67,7 +67,7 @@ TEST_CASE("dir_name", "[create_dir]") {
     REQUIRE(dir_name(SPDLOG_FILENAME_T("dir/file.txt")) == SPDLOG_FILENAME_T("dir"));
     REQUIRE(dir_name(SPDLOG_FILENAME_T("dir/file.txt/")) == SPDLOG_FILENAME_T("dir/file.txt"));
     REQUIRE(dir_name(SPDLOG_FILENAME_T("/dir/file.txt")) == SPDLOG_FILENAME_T("/dir"));
-    REQUIRE(dir_name(SPDLOG_FILENAME_T("//dir/file.txt")) == SPDLOG_FILENAME_T("//dir/"));
+    REQUIRE(dir_name(SPDLOG_FILENAME_T("//dir/file.txt")) == SPDLOG_FILENAME_T("//dir"));
     REQUIRE(dir_name(SPDLOG_FILENAME_T("../file.txt")) == SPDLOG_FILENAME_T(".."));
     REQUIRE(dir_name(SPDLOG_FILENAME_T("./file.txt")) == SPDLOG_FILENAME_T("."));
 }

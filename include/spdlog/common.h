@@ -156,13 +156,4 @@ struct file_event_handlers {
     std::function<void(const filename_t &filename, std::FILE *file_stream)> before_close;
     std::function<void(const filename_t &filename)> after_close;
 };
-
-namespace details {
-
-// // to_string_view
-// [[nodiscard]] constexpr spdlog::string_view_t to_string_view(const memory_buf_t &buf) noexcept {
-//     return spdlog::string_view_t{buf.data(), buf.size()};
-// }
-
-}  // namespace details
 }  // namespace spdlog

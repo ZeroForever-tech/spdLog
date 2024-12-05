@@ -12,6 +12,8 @@
 #include <memory>
 #include <string>
 #include <filesystem>
+#include <chrono>
+#include <string_view>
 
 #include "./source_loc.h"
 

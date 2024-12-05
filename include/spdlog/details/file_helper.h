@@ -6,6 +6,7 @@
 #include <tuple>
 
 #include "../common.h"
+#include "../file_event_handlers.h"
 
 namespace spdlog {
 namespace details {
@@ -30,7 +31,7 @@ public:
     void close();
     void write(const memory_buf_t &buf) const;
     size_t size() const;
-    const filename_t &filename() const;    
+    const filename_t &filename() const;
 
 private:
     const int open_tries_ = 5;

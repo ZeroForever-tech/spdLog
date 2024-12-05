@@ -11,7 +11,6 @@
 #include <initializer_list>
 #include <memory>
 #include <string>
-#include <filesystem>
 #include <chrono>
 #include <string_view>
 
@@ -48,15 +47,6 @@ namespace sinks {
 class sink;
 }
 
-#ifdef _WIN32
-    // In windows, add L prefix for filename literals (e.g. L"filename.txt")
-    #define SPDLOG_FILENAME_T_INNER(s) L##s
-    #define SPDLOG_FILENAME_T(s) SPDLOG_FILENAME_T_INNER(s)
-#else
-    #define SPDLOG_FILENAME_T(s) s
-#endif
-
-using filename_t = std::filesystem::path;
 using log_clock = std::chrono::system_clock;
 using sink_ptr = std::shared_ptr<sinks::sink>;
 using sinks_init_list = std::initializer_list<sink_ptr>;
@@ -146,16 +136,4 @@ private:
 [[noreturn]] SPDLOG_API void throw_spdlog_ex(const std::string &msg, int last_errno);
 [[noreturn]] SPDLOG_API void throw_spdlog_ex(std::string msg);
 
-struct file_event_handlers {
-    file_event_handlers()
-        : before_open(nullptr),
-          after_open(nullptr),
-          before_close(nullptr),
-          after_close(nullptr) {}
-
-    std::function<void(const filename_t &filename)> before_open;
-    std::function<void(const filename_t &filename, std::FILE *file_stream)> after_open;
-    std::function<void(const filename_t &filename, std::FILE *file_stream)> before_close;
-    std::function<void(const filename_t &filename)> after_close;
-};
 }  // namespace spdlog

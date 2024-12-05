@@ -6,6 +6,7 @@
 #include <ctime>  // std::time_t
 #include <tuple>
 #include "../common.h"
+#include "../filename_t.h"
 
 namespace spdlog {
 namespace details {

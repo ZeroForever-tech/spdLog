@@ -30,22 +30,7 @@ public:
     void close();
     void write(const memory_buf_t &buf) const;
     size_t size() const;
-    const filename_t &filename() const;
-
-    //
-    // return file path and its extension:
-    //
-    // "mylog.txt" => ("mylog", ".txt")
-    // "mylog" => ("mylog", "")
-    // "mylog." => ("mylog.", "")
-    // "/dir1/dir2/mylog.txt" => ("/dir1/dir2/mylog", ".txt")
-    //
-    // the starting dot in filenames is ignored (hidden files):
-    //
-    // ".mylog" => (".mylog". "")
-    // "my_folder/.mylog" => ("my_folder/.mylog", "")
-    // "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-    static std::tuple<filename_t, filename_t> split_by_extension(const filename_t &fname);
+    const filename_t &filename() const;    
 
 private:
     const int open_tries_ = 5;

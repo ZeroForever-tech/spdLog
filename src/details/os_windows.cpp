@@ -76,27 +76,7 @@ bool fopen_s(FILE **fp, const filename_t &filename, const filename_t &mode) {
     return *fp == nullptr;
 }
 
-bool remove(const filename_t &filename) { return std::filesystem::remove(filename); }
 
-bool remove_if_exists(const filename_t &filename) {
-    if (path_exists(filename)) {
-        return os::remove(filename);        
-    }
-    return false;
-}
-    
-
-bool rename(const filename_t &filename1, const filename_t &filename2) noexcept {
-    if (!std::filesystem::is_regular_file(filename1)) {
-        return false;
-    }
-    std::error_code ec;
-    std::filesystem::rename(filename1, filename2, ec);
-    return !ec;
-}
-
-// Return true if path exists (file or directory)
-bool path_exists(const filename_t &filename) noexcept { return std::filesystem::exists(filename); }
 
 #ifdef _MSC_VER
 // avoid warning about unreachable statement at the end of filesize()
@@ -245,22 +225,6 @@ void utf8_to_wstrbuf(string_view_t str, wmemory_buf_t &target) {
     throw_spdlog_ex(fmt_lib::format("MultiByteToWideChar failed. Last error: {}", ::GetLastError()));
 }
 
-// return true on success
-// static bool mkdir_(const filename_t &path) { return ::_mkdir(path.c_str()) == 0; }
-
-// create the given directory - and all directories leading to it
-// return true on success or if the directory already exists
-bool create_dir(const filename_t &path) {    
-    std::error_code ec;
-    return std::filesystem::create_directories(path, ec) || !ec;
-}
-
-// Return directory name from given path or empty string
-// "abc/file" => "abc"
-// "abc/" => "abc"
-// "abc" => ""
-// "abc///" => "abc//"
-filename_t dir_name(const filename_t &path) { return path.parent_path(); }
 
 std::string getenv(const char *field) {
 #if defined(_MSC_VER)

@@ -28,7 +28,7 @@ namespace sinks {
 struct daily_filename_calculator {    
     static filename_t calc_filename(const filename_t &filename, const tm &now_tm) {
         filename_t basename, ext;
-        std::tie(basename, ext) = details::file_helper::split_by_extension(filename);
+        std::tie(basename, ext) = details::os::split_by_extension(filename);
         std::basic_ostringstream<filename_t::value_type> oss;        
         oss << basename.native() << '_' << std::setfill(SPDLOG_FILENAME_T('0')) << std::setw(4) << now_tm.tm_year + 1900 << '-'
             << std::setw(2) << now_tm.tm_mon + 1 << '-' << std::setw(2) << now_tm.tm_mday << ext.native();

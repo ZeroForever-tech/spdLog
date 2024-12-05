@@ -70,7 +70,7 @@ static void test_split_ext(const spdlog::filename_t::value_type *fname,
 
     spdlog::filename_t basename;
     spdlog::filename_t ext;
-    std::tie(basename, ext) = file_helper::split_by_extension(filename);
+    std::tie(basename, ext) = spdlog::details::os::split_by_extension(filename);
     REQUIRE(basename == expected_base);
     REQUIRE(ext == expected_ext);
 }

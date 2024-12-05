@@ -199,6 +199,7 @@ set(SPDLOG_SRCS
     "src/spdlog.cpp"
     "src/cfg/helpers.cpp"
     "src/details/file_helper.cpp"
+	"src/details/os_filesystem.cpp"
     "src/details/log_msg.cpp"
     "src/details/log_msg_buffer.cpp"
     "src/details/periodic_worker.cpp"

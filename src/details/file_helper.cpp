@@ -108,24 +108,6 @@ size_t file_helper::size() const {
 
 const filename_t &file_helper::filename() const { return filename_; }
 
-//
-// return file path and its extension:
-//
-// "mylog.txt" => ("mylog", ".txt")
-// "mylog" => ("mylog", "")
-// "mylog." => ("mylog", ".")
-// "/dir1/dir2/mylog.txt" => ("/dir1/dir2/mylog", ".txt")
-//
-// the starting dot in filenames is ignored (hidden files):
-//
-// ".mylog" => (".mylog". "")
-// "my_folder/.mylog" => ("my_folder/.mylog", "")
-// "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
-std::tuple<filename_t, filename_t> file_helper::split_by_extension(const filename_t &fname) {        
-    const auto ext = fname.extension();
-    auto without_ext = filename_t(fname).replace_extension();    
-    return std::make_tuple(without_ext, ext);    
-}
 
 }  // namespace details
 }  // namespace spdlog

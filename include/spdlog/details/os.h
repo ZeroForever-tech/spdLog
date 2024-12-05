@@ -4,6 +4,7 @@
 #pragma once
 
 #include <ctime>  // std::time_t
+#include <tuple>
 #include "../common.h"
 
 namespace spdlog {
@@ -103,6 +104,21 @@ SPDLOG_API bool fsync(FILE *fp);
 // Do non-locking fwrite if possible by the os or use the regular locking fwrite
 // Return true on success.
 SPDLOG_API bool fwrite_bytes(const void *ptr, const size_t n_bytes, FILE *fp);
+
+//
+// Return file path and its extension:
+//
+// "mylog.txt" => ("mylog", ".txt")
+// "mylog" => ("mylog", "")
+// "mylog." => ("mylog.", "")
+// "/dir1/dir2/mylog.txt" => ("/dir1/dir2/mylog", ".txt")
+//
+// the starting dot in filenames is ignored (hidden files):
+//
+// ".mylog" => (".mylog". "")
+// "my_folder/.mylog" => ("my_folder/.mylog", "")
+// "my_folder/.mylog.txt" => ("my_folder/.mylog", ".txt")
+SPDLOG_API std::tuple<filename_t, filename_t> split_by_extension(const filename_t &fname);
 
 }  // namespace os
 }  // namespace details

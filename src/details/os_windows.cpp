@@ -157,25 +157,28 @@ size_t _thread_id() noexcept { return static_cast<size_t>(::GetCurrentThreadId()
 
 // Return current thread id as size_t (from thread local storage)
 size_t thread_id() noexcept {
-    // cache thread id in tls
+#if defined(SPDLOG_NO_TLS)
+    return _thread_id();
+#else  // cache thread id in tls
     static thread_local const size_t tid = _thread_id();
     return tid;
+#endif
 }
 
 // This is avoid msvc issue in sleep_for that happens if the clock changes.
 // See https://github.com/gabime/spdlog/issues/609
 void sleep_for_millis(unsigned int milliseconds) noexcept { ::Sleep(milliseconds); }
 
-// Try tp convert wstring filename to string. Return "??" if failed
+// Try tp convert wstring filename to string. Return "???" if failed
 std::string filename_to_str(const filename_t &filename) {
     static_assert(std::is_same_v<filename_t::value_type, wchar_t>, "filename_t type must be wchar_t");
-    try {
+    try {        
         memory_buf_t buf;
         wstr_to_utf8buf(filename.wstring(), buf);
         return std::string(buf.data(), buf.size());
     }
     catch (...) {
-		return "??";
+		return "???";
 	}
     
 }

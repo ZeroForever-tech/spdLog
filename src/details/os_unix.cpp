@@ -232,9 +232,12 @@ size_t _thread_id() noexcept {
 
 // Return current thread id as size_t (from thread local storage)
 size_t thread_id() noexcept {
-    // cache thread id in tls
+#if defined(SPDLOG_NO_TLS)
+    return _thread_id();
+#else  // cache thread id in tls
     static thread_local const size_t tid = _thread_id();
     return tid;
+#endif
 }
 
 void sleep_for_millis(unsigned int milliseconds) noexcept {

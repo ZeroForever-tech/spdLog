@@ -5,7 +5,6 @@
 
 #include <array>
 #include <atomic>
-#include <chrono>
 #include <cstdio>
 #include <exception>
 #include <functional>
@@ -107,7 +106,7 @@ constexpr std::array<std::string_view, levels_count> short_level_names{"T", "D",
     return level_string_views.at(level_to_number(lvl));
 }
 
-[[nodiscard]] constexpr const std::string_view to_short_string_view(spdlog::level lvl) noexcept {
+[[nodiscard]] constexpr std::string_view to_short_string_view(spdlog::level lvl) noexcept {
     return short_level_names.at(level_to_number(lvl));
 }
 
@@ -161,12 +160,11 @@ struct file_event_handlers {
 namespace details {
 
 // to_string_view
-
 [[nodiscard]] constexpr spdlog::string_view_t to_string_view(const memory_buf_t &buf) noexcept {
     return spdlog::string_view_t{buf.data(), buf.size()};
 }
 
-[[nodiscard]] constexpr spdlog::string_view_t to_string_view(spdlog::string_view_t str) noexcept { return str; }
+//[[nodiscard]] constexpr spdlog::string_view_t to_string_view(spdlog::string_view_t str) noexcept { return str; }
 
 template <typename T, typename... Args>
 [[nodiscard]] constexpr fmt::basic_string_view<T> to_string_view(fmt::basic_format_string<T, Args...> fmt) noexcept {

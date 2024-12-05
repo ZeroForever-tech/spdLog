@@ -12,7 +12,6 @@
 #include <initializer_list>
 #include <memory>
 #include <string>
-#include <type_traits>
 #include <filesystem>
 
 #include "./source_loc.h"
@@ -48,11 +47,11 @@ namespace sinks {
 class sink;
 }
 
-#ifdef _WIN32 
+#ifdef _WIN32
     // In windows, add L prefix for filename literals (e.g. L"filename.txt")
     #define SPDLOG_FILENAME_T_INNER(s) L##s
     #define SPDLOG_FILENAME_T(s) SPDLOG_FILENAME_T_INNER(s)
-#else   
+#else
     #define SPDLOG_FILENAME_T(s) s
 #endif
 

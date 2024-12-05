@@ -3,7 +3,6 @@
 #include "test_sink.h"
 
 using spdlog::memory_buf_t;
-using spdlog::details::to_string_view;
 
 // log to str and return it
 template <typename... Args>

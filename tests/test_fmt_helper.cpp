@@ -2,7 +2,6 @@
 #include "includes.h"
 
 using spdlog::memory_buf_t;
-using spdlog::details::to_string_view;
 
 void test_pad2(int n, const char *expected) {
     memory_buf_t buf;

@@ -213,7 +213,7 @@ TEST_CASE("start_stop_clbks5", "[async]") {
     REQUIRE_FALSE(stop_called);
 }
 
-TEST_CASE("mulii-sinks", "[async]") {
+TEST_CASE("multi-sinks", "[async]") {
     prepare_logdir();
     auto test_sink1 = std::make_shared<spdlog::sinks::test_sink_mt>();
     auto test_sink2 = std::make_shared<spdlog::sinks::test_sink_mt>();

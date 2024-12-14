@@ -181,7 +181,8 @@ set(SPDLOG_HEADERS
     "include/spdlog/sinks/syslog_sink.h"
     "include/spdlog/sinks/systemd_sink.h"
     "include/spdlog/sinks/tcp_sink.h"
-    "include/spdlog/sinks/udp_sink.h")
+    "include/spdlog/sinks/udp_sink.h"
+    "include/spdlog/sinks/async_sink.h")
 
 set(SPDLOG_SRCS
     "src/common.cpp"
@@ -196,7 +197,8 @@ set(SPDLOG_SRCS
     "src/sinks/base_sink.cpp"
     "src/sinks/basic_file_sink.cpp"
     "src/sinks/rotating_file_sink.cpp"
-    "src/sinks/stdout_sinks.cpp")
+    "src/sinks/stdout_sinks.cpp"
+    "src/sinks/async_sink.cpp")
 
 if(WIN32)
     list(APPEND SPDLOG_SRCS

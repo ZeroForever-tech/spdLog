@@ -119,12 +119,11 @@ void callback_example() {
 
 #include "spdlog/sinks/async_sink.h"
 void async_example() {
-    auto async_sink = std::make_shared<async_sink_mt>();
+    auto logger = spdlog::create_async("some_logger");
     auto file_sink = std::make_shared<basic_file_sink_mt>("logs/async_log.txt", true);
-    async_sink->add_sink(std::move(file_sink));
-    spdlog::logger logger("async_logger", async_sink);
+    logger->sinks().push_back(file_sink);
     for (int i = 1; i < 101; ++i) {
-        logger.info("Async message #{}", i);
+        logger->info("Async message #{}", i);
     }
 }
 

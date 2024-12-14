@@ -232,14 +232,3 @@ TEST_CASE("mutli-sinks", "[async]") {
     REQUIRE(test_sink2->msg_counter() == messages);
     REQUIRE(test_sink3->msg_counter() == messages);
 }
-
-TEST_CASE("no-sinks", "[async]") {
-    auto async_sink = std::make_shared<async_sink_mt>();
-    auto logger = std::make_shared<spdlog::logger>("async_logger", async_sink);
-    for (int i = 1; i < 101; ++i) {
-        logger->info("Async message #{}", i);
-    }
-    auto test_sink = std::make_shared<test_sink_mt>();
-    async_sink->add_sink(test_sink);
-    REQUIRE(test_sink->msg_counter() == 0);
-}

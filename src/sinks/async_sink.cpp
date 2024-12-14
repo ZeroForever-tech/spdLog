@@ -7,6 +7,7 @@
 #include <mutex>
 #include <cassert>
 
+#include "spdlog/details/mpmc_blocking_q.h"
 #include "spdlog/common.h"
 #include "spdlog/pattern_formatter.h"
 
@@ -93,7 +94,7 @@ void async_sink<Mutex>::flush_() {
 }
 
 template <typename Mutex>
-void async_sink<Mutex>::send_message_(const async_log_msg::type msg_type, const details::log_msg &msg) {
+void async_sink<Mutex>::send_message_(async_log_msg::type msg_type, const details::log_msg &msg) {
     switch (overflow_policy_) {
         case overflow_policy::block:
             q_->enqueue(async_log_msg(msg_type, msg));

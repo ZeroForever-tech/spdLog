@@ -56,6 +56,37 @@ void async_sink<Mutex>::sink_it_(const details::log_msg &msg) {
     send_message_(async_log_msg::type::log, msg);
 }
 
+
+template <typename Mutex>
+void async_sink<Mutex>::set_overflow_policy(overflow_policy policy) {
+    overflow_policy_ = policy;
+}
+
+template <typename Mutex>
+typename async_sink<Mutex>::overflow_policy async_sink<Mutex>::get_overflow_policy() const {
+    return overflow_policy_;
+}
+
+template <typename Mutex>
+size_t async_sink<Mutex>::get_overrun_counter() const {
+    return q_->overrun_counter();
+}
+
+template <typename Mutex>
+void async_sink<Mutex>::reset_overrun_counter() const {
+    q_->reset_overrun_counter();
+}
+
+template <typename Mutex>
+size_t async_sink<Mutex>::get_discard_counter() const {
+    return q_->discard_counter();
+}
+
+template <typename Mutex>
+void async_sink<Mutex>::reset_discard_counter() const {
+    q_->reset_discard_counter();
+}
+
 template <typename Mutex>
 void async_sink<Mutex>::flush_() {
     send_message_(async_log_msg::type::flush, details::log_msg());

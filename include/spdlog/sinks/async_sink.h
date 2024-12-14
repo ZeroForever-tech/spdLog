@@ -42,14 +42,14 @@ public:
     async_sink(async_sink &&) = default;
     async_sink &operator=(async_sink &&) = default;
 
-    void set_overflow_policy(overflow_policy policy) { overflow_policy_ = policy; }
-    [[nodiscard]] overflow_policy get_overflow_policy() const { return overflow_policy_; }
+    void set_overflow_policy(overflow_policy policy);
+    [[nodiscard]] overflow_policy get_overflow_policy() const;
 
-    [[nodiscard]] size_t get_overrun_counter() const { return q_->overrun_counter(); }
-    void reset_overrun_counter() const { q_->reset_overrun_counter(); }
+    [[nodiscard]] size_t get_overrun_counter() const;
+    void reset_overrun_counter() const;
 
-    [[nodiscard]] size_t get_discard_counter() const { return q_->discard_counter(); }
-    void reset_discard_counter() const { q_->reset_discard_counter(); }
+    [[nodiscard]] size_t get_discard_counter() const;
+    void reset_discard_counter() const;
 
 private:
     void sink_it_(const details::log_msg &msg) override;

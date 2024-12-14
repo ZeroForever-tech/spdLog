@@ -13,7 +13,7 @@ using spdlog::sinks::test_sink_mt;
 
 auto creat_async_logger(size_t queue_size, std::shared_ptr<sink> backend_sink) {
     auto async_sink = std::make_shared<async_sink_mt>(queue_size);
-    async_sink->add_sink(backend_sink);
+    async_sink->add_sink(std::move(backend_sink));
     auto logger = std::make_shared<spdlog::logger>("async_logger", async_sink);
     return std::make_tuple(logger, async_sink);
 }
@@ -136,7 +136,6 @@ TEST_CASE("multi threads", "[async]") {
             t.join();
         }
     }
-
     REQUIRE(test_sink->msg_counter() == messages * n_threads);
     REQUIRE(test_sink->flush_counter() == n_threads);
 }
@@ -245,7 +244,6 @@ TEST_CASE("level-off", "[async]") {
             logger->info("Hello message #{}", i);
         }
     }
-
     // logger and async_sink are destroyed here so the queue should be emptied
     REQUIRE(test_sink->msg_counter() == 0);
     REQUIRE(test_sink->flush_counter() == 0);

@@ -213,7 +213,7 @@ TEST_CASE("start_stop_clbks5", "[async]") {
     REQUIRE_FALSE(stop_called);
 }
 
-TEST_CASE("mutli-sinks", "[async]") {
+TEST_CASE("mulii-sinks", "[async]") {
     prepare_logdir();
     auto test_sink1 = std::make_shared<spdlog::sinks::test_sink_mt>();
     auto test_sink2 = std::make_shared<spdlog::sinks::test_sink_mt>();
@@ -231,4 +231,22 @@ TEST_CASE("mutli-sinks", "[async]") {
     REQUIRE(test_sink1->msg_counter() == messages);
     REQUIRE(test_sink2->msg_counter() == messages);
     REQUIRE(test_sink3->msg_counter() == messages);
+}
+
+TEST_CASE("level-off", "[async]") {
+    const auto test_sink = std::make_shared<test_sink_mt>();
+    test_sink->set_level(spdlog::level::critical);
+    const size_t queue_size = 16;
+    size_t messages = 256;
+    {
+        auto [logger, async_sink] = creat_async_logger(queue_size, test_sink);
+        logger->flush_on(spdlog::level::critical);
+        for (size_t i = 0; i < messages; i++) {
+            logger->info("Hello message #{}", i);
+        }
+    }
+
+    // logger and async_sink are destroyed here so the queue should be emptied
+    REQUIRE(test_sink->msg_counter() == 0);
+    REQUIRE(test_sink->flush_counter() == 0);
 }

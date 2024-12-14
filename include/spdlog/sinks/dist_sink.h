@@ -48,7 +48,7 @@ public:
 
 protected:
     void sink_it_(const details::log_msg &msg) override {
-        for (auto &sub_sink : sinks_) {
+        for (const auto &sub_sink : sinks_) {
             if (sub_sink->should_log(msg.log_level)) {
                 sub_sink->log(msg);
             }

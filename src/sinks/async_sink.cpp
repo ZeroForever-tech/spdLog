@@ -26,7 +26,7 @@ async_sink<Mutex>::async_sink(size_t queue_size, std::function<void()> on_thread
 
     worker_thread_ = std::thread([this, on_thread_start, on_thread_stop] {
         if (on_thread_start) on_thread_start();
-        this->worker_loop();
+        this->backend_loop_();
         if (on_thread_stop) on_thread_stop();
     });
 }
@@ -112,7 +112,7 @@ void async_sink<Mutex>::send_message_(async_log_msg::type msg_type, const detail
 }
 
 template <typename Mutex>
-void async_sink<Mutex>::worker_loop() {
+void async_sink<Mutex>::backend_loop_() {
     details::async_log_msg incoming_msg;
     for (;;) {
         q_->dequeue(incoming_msg);

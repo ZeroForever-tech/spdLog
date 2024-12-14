@@ -59,7 +59,7 @@ private:
     void sink_it_(const details::log_msg &msg) override;
     void flush_() override;
     void send_message_(async_log_msg::type msg_type, const details::log_msg &msg);
-    void worker_loop();
+    void backend_loop_();
 
     std::atomic<overflow_policy> overflow_policy_ = overflow_policy::block;
     std::unique_ptr<queue_t> q_;

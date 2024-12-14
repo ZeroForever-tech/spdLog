@@ -13,7 +13,7 @@
 // The worker thread is terminated when the async_sink is destroyed.
 
 namespace spdlog::details {  // forward declaration
-template <typename Mutex>
+template <typename T>
 class mpmc_blocking_queue;
 }
 

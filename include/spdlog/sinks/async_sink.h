@@ -1,17 +1,21 @@
 #pragma once
 
-#include <cstdint>
-#include <thread>
 #include <atomic>
+#include <cstdint>
 #include <functional>
+#include <thread>
 
 #include "../details/async_log_msg.h"
-#include "../details/mpmc_blocking_q.h"
 #include "dist_sink.h"
 
 // async_sink is a sink that sends log messages to a dist_sink in a separate thread using a queue.
 // The worker thread dequeues the messages and sends them to the dist_sink to perform the actual logging.
 // The worker thread is terminated when the async_sink is destroyed.
+
+namespace spdlog::details {  // forward declaration
+template <typename Mutex>
+class mpmc_blocking_queue;
+}
 
 namespace spdlog {
 namespace sinks {
@@ -54,7 +58,7 @@ public:
 private:
     void sink_it_(const details::log_msg &msg) override;
     void flush_() override;
-    void send_message_(const async_log_msg::type msg_type, const details::log_msg &msg);
+    void send_message_(async_log_msg::type msg_type, const details::log_msg &msg);
     void worker_loop();
 
     std::atomic<overflow_policy> overflow_policy_ = overflow_policy::block;

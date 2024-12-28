@@ -149,13 +149,12 @@ int main(int argc, char *argv[]) {
         auto daily_mt = spdlog::create<daily_file_sink_mt>("daily_mt", "latency_logs/daily_mt.log", 0, 1);
         benchmark::RegisterBenchmark("daily_mt", bench_logger, std::move(daily_mt))->Threads(n_threads)->UseRealTime();
     }
-
-    // async
-    auto queue_size = 1024 * 1024 * 3;
-    auto async_sink = std::make_shared<async_sink_mt>(queue_size);
-    async_sink->add_sink(std::make_shared<null_sink_st>());
-    async_sink->set_overflow_policy(async_sink_mt::overflow_policy::overrun_oldest);
-    auto async_logger = std::make_shared<spdlog::logger>("async_logger", std::move(async_sink));
+    using spdlog::sinks::async_sink;
+    async_sink::config config;
+    config.queue_size = 3 * 1024 * 1024;;
+    config.sinks.push_back(std::make_shared<null_sink_st>());
+    config.policy = async_sink::overflow_policy::overrun_oldest;
+    auto async_logger = std::make_shared<spdlog::logger>("async_logger", std::make_shared<async_sink>(config));
     benchmark::RegisterBenchmark("async_logger", bench_logger, async_logger)->Threads(n_threads)->UseRealTime();
 
     benchmark::Initialize(&argc, argv);

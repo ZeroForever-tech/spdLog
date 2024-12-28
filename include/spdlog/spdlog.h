@@ -14,14 +14,9 @@
 #include <string_view>
 
 #include "./common.h"
-#include "./details/context.h"
 #include "./logger.h"
 
 namespace spdlog {
-
-SPDLOG_API void set_context(std::shared_ptr<details::context> context);
-SPDLOG_API std::shared_ptr<details::context> context();
-SPDLOG_API const std::shared_ptr<details::context> &context_ref();
 
 // Create a logger with a templated sink type
 // Example:

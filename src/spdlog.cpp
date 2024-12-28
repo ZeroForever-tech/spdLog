@@ -13,27 +13,20 @@
 
 namespace spdlog {
 
-static std::shared_ptr s_context =
+
 #ifndef SPDLOG_DISABLE_GLOBAL_LOGGER
-    std::make_unique<details::context>(std::make_unique<logger>(std::string(), std::make_unique<sinks::stdout_color_sink_mt>()));
+    static std::shared_ptr<logger> s_logger = std::make_shared<logger>("global", std::make_shared<sinks::stdout_color_sink_mt>());
 #else
-    std::make_unique<details::context>();  // empty context
+    static std::short_ptr<logger> s_logger = nullptr;
 #endif
 
-void set_context(std::shared_ptr<details::context> context) { s_context = std::move(context); }
 
-std::shared_ptr<details::context> context() { return s_context; }
+std::shared_ptr<logger> global_logger() { return s_logger; }
 
-const std::shared_ptr<details::context> &context_ref() { return s_context; }
-
-std::shared_ptr<logger> global_logger() { return context_ref()->global_logger(); }
-
-void set_global_logger(std::shared_ptr<logger> global_logger) { context()->set_logger(std::move(global_logger)); }
+void set_global_logger(std::shared_ptr<logger> global_logger) { s_logger = std::move(global_logger); }
 
 logger *global_logger_raw() noexcept {
-    auto *rv = context_ref()->global_logger_raw();
-    assert(rv != nullptr);
-    return rv;
+    return s_logger.get();
 }
 
 void set_formatter(std::unique_ptr<formatter> formatter) { global_logger()->set_formatter(std::move(formatter)); }
@@ -52,6 +45,6 @@ void flush_on(level level) { global_logger()->flush_on(level); }
 
 void set_error_handler(void (*handler)(const std::string &msg)) { global_logger()->set_error_handler(handler); }
 
-void shutdown() { s_context.reset(); }
+void shutdown() { s_logger.reset(); }
 
 }  // namespace spdlog

@@ -95,24 +95,25 @@ TEST_CASE("clone-logger", "[clone]") {
 
 TEST_CASE("clone async", "[clone]") {
     using spdlog::sinks::test_sink_mt;
-    auto async_sink = std::make_shared<spdlog::sinks::async_sink_mt>(32);
     auto test_sink = std::make_shared<test_sink_mt>();
-    async_sink->add_sink(test_sink);
-    auto logger = std::make_shared<spdlog::logger>("orig", async_sink);
-    logger->set_pattern("%v");
-    auto cloned = logger->clone("clone");
+    {
+        auto cfg = spdlog::sinks::async_sink::config();
+        cfg.sinks.push_back(test_sink);
+        auto async_sink = spdlog::sinks::async_sink::with_sink<test_sink_mt>();
+        auto logger = spdlog::create<spdlog::sinks::async_sink>("orig", cfg);
+        logger->set_pattern("*** %v ***");
+        auto cloned = logger->clone("clone");
+        REQUIRE(cloned->name() == "clone");
+        REQUIRE(logger->sinks() == cloned->sinks());
+        REQUIRE(logger->log_level() == cloned->log_level());
+        REQUIRE(logger->flush_level() == cloned->flush_level());
 
-    REQUIRE(cloned->name() == "clone");
-    REQUIRE(logger->sinks() == cloned->sinks());
-    REQUIRE(logger->log_level() == cloned->log_level());
-    REQUIRE(logger->flush_level() == cloned->flush_level());
-
-    logger->info("Some message 1");
-    cloned->info("Some message 2");
-    spdlog::details::os::sleep_for_millis(100);
+        logger->info("Some message 1");
+        cloned->info("Some message 2");
+    }
     REQUIRE(test_sink->lines().size() == 2);
-    REQUIRE(test_sink->lines()[0] == "Some message 1");
-    REQUIRE(test_sink->lines()[1] == "Some message 2");
+    REQUIRE(test_sink->lines()[0] == "*** Some message 1 ***");
+    REQUIRE(test_sink->lines()[1] == "*** Some message 2 ***");
 }
 
 TEST_CASE("global logger API", "[global logger]") {

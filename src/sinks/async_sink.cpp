@@ -3,99 +3,71 @@
 
 #include "spdlog/sinks/async_sink.h"
 
+#include <cassert>
 #include <memory>
 #include <mutex>
-#include <cassert>
 
-#include "spdlog/details/mpmc_blocking_q.h"
 #include "spdlog/common.h"
+#include "spdlog/details/mpmc_blocking_q.h"
 #include "spdlog/pattern_formatter.h"
+#include "spdlog/spdlog.h"
 
 namespace spdlog {
 namespace sinks {
 
-template <typename Mutex>
-async_sink<Mutex>::async_sink(size_t queue_size, std::function<void()> on_thread_start, std::function<void()> on_thread_stop)
-    : base_t() {
-    if (queue_size == 0 || queue_size > max_queue_size) {
+async_sink::async_sink(config async_config)
+    : config_(std::move(async_config)) {
+    if (config_.queue_size == 0 || config_.queue_size > max_queue_size) {
         throw spdlog_ex("async_sink: invalid queue size");
     }
-    // printf("........... Allocating queue: slot: %zu X %zu bytes ====> %lld KB ..............\n",
-    //   queue_size, sizeof(details::async_log_msg), (sizeof(details::async_log_msg) * queue_size)/1024);
-    q_ = std::make_unique<queue_t>(queue_size);
-
-    worker_thread_ = std::thread([this, on_thread_start, on_thread_stop] {
-        if (on_thread_start) on_thread_start();
+    q_ = std::make_unique<queue_t>(config_.queue_size);
+    worker_thread_ = std::thread([this] {
+        if (config_.on_thread_start) config_.on_thread_start();
         this->backend_loop_();
-        if (on_thread_stop) on_thread_stop();
+        if (config_.on_thread_stop) config_.on_thread_stop();
     });
 }
 
-template <typename Mutex>
-async_sink<Mutex>::~async_sink() {
+async_sink::~async_sink() {
     try {
         q_->enqueue(async_log_msg(async_log_msg::type::terminate));
         worker_thread_.join();
     } catch (...) {
+        printf("Exception in ~async_sink()\n");
     }
 };
 
-template <typename Mutex>
-async_sink<Mutex>::async_sink()
-    : async_sink(default_queue_size, nullptr, nullptr) {}
+void async_sink::log(const details::log_msg &msg) { send_message_(async_log_msg::type::log, msg); }
 
-template <typename Mutex>
-async_sink<Mutex>::async_sink(size_t queue_size)
-    : async_sink(queue_size, nullptr, nullptr) {}
+void async_sink::flush() { send_message_(async_log_msg::type::flush, details::log_msg()); }
 
-template <typename Mutex>
-async_sink<Mutex>::async_sink(std::function<void()> on_thread_start, std::function<void()> on_thread_stop)
-    : async_sink(default_queue_size, on_thread_start, on_thread_stop) {}
+void async_sink::set_pattern(const std::string &pattern) { set_formatter(std::make_unique<pattern_formatter>(pattern)); }
 
-template <typename Mutex>
-void async_sink<Mutex>::sink_it_(const details::log_msg &msg) {
-    send_message_(async_log_msg::type::log, msg);
+void async_sink::set_formatter(std::unique_ptr<formatter> formatter) {
+    const auto &sinks = config_.sinks;
+    for (auto it = sinks.begin(); it != sinks.end(); ++it) {
+        if (std::next(it) == sinks.end()) {
+            // last element - we can move it.
+            (*it)->set_formatter(std::move(formatter));
+            break;  // to prevent clang-tidy warning
+        }
+        (*it)->set_formatter(formatter->clone());
+    }
 }
 
+size_t async_sink::get_overrun_counter() const { return q_->overrun_counter(); }
 
-template <typename Mutex>
-void async_sink<Mutex>::set_overflow_policy(overflow_policy policy) {
-    overflow_policy_ = policy;
-}
+void async_sink::reset_overrun_counter() const { q_->reset_overrun_counter(); }
 
-template <typename Mutex>
-typename async_sink<Mutex>::overflow_policy async_sink<Mutex>::get_overflow_policy() const {
-    return overflow_policy_;
-}
+size_t async_sink::get_discard_counter() const { return q_->discard_counter(); }
 
-template <typename Mutex>
-size_t async_sink<Mutex>::get_overrun_counter() const {
-    return q_->overrun_counter();
-}
+void async_sink::reset_discard_counter() const { q_->reset_discard_counter(); }
 
-template <typename Mutex>
-void async_sink<Mutex>::reset_overrun_counter() const {
-    q_->reset_overrun_counter();
-}
+const async_sink::config &async_sink::get_config() const { return config_; }
 
-template <typename Mutex>
-size_t async_sink<Mutex>::get_discard_counter() const {
-    return q_->discard_counter();
-}
-
-template <typename Mutex>
-void async_sink<Mutex>::reset_discard_counter() const {
-    q_->reset_discard_counter();
-}
-
-template <typename Mutex>
-void async_sink<Mutex>::flush_() {
-    send_message_(async_log_msg::type::flush, details::log_msg());
-}
-
-template <typename Mutex>
-void async_sink<Mutex>::send_message_(async_log_msg::type msg_type, const details::log_msg &msg) {
-    switch (overflow_policy_) {
+// private methods
+void async_sink::send_message_(async_log_msg::type msg_type, const details::log_msg &msg) const {
+    switch (config_.policy) {
         case overflow_policy::block:
             q_->enqueue(async_log_msg(msg_type, msg));
             break;
@@ -111,17 +83,16 @@ void async_sink<Mutex>::send_message_(async_log_msg::type msg_type, const detail
     }
 }
 
-template <typename Mutex>
-void async_sink<Mutex>::backend_loop_() {
+void async_sink::backend_loop_() const {
     details::async_log_msg incoming_msg;
     for (;;) {
         q_->dequeue(incoming_msg);
         switch (incoming_msg.message_type()) {
             case async_log_msg::type::log:
-                base_t::sink_it_(incoming_msg);
+                backend_log_(incoming_msg);
                 break;
             case async_log_msg::type::flush:
-                base_t::flush_();
+                backend_flush_();
                 break;
             case async_log_msg::type::terminate:
                 return;
@@ -131,10 +102,19 @@ void async_sink<Mutex>::backend_loop_() {
     }
 }
 
+void async_sink::backend_log_(const details::log_msg &msg) const {
+    for (const auto &sink : config_.sinks) {
+        if (sink->should_log(msg.log_level)) {
+            sink->log(msg);
+        }
+    }
+}
+
+void async_sink::backend_flush_() const {
+    for (const auto &sink : config_.sinks) {
+        sink->flush();
+    }
+}
+
 }  // namespace sinks
 }  // namespace spdlog
-
-// template instantiations
-#include "spdlog/details/null_mutex.h"
-template class SPDLOG_API spdlog::sinks::async_sink<std::mutex>;
-template class SPDLOG_API spdlog::sinks::async_sink<spdlog::details::null_mutex>;

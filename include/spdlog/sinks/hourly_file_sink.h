@@ -14,7 +14,6 @@
 #include "../details/file_helper.h"
 #include "../details/null_mutex.h"
 #include "../details/os.h"
-#include "../fmt/fmt.h"
 #include "./base_sink.h"
 
 namespace spdlog {

@@ -15,6 +15,8 @@
 #include <cstdint>
 
 #include "./source_loc.h"
+#include "fmt/base.h"
+#include "fmt/xchar.h"
 
 #if defined(SPDLOG_SHARED_LIB)
     #if defined(_WIN32)
@@ -29,8 +31,6 @@
 #else  // !defined(SPDLOG_SHARED_LIB)
     #define SPDLOG_API
 #endif
-
-#include "fmt/fmt.h"
 
 #define SPDLOG_FMT_RUNTIME(format_string) fmt::runtime(format_string)
 #define SPDLOG_FMT_STRING(format_string) FMT_STRING(format_string)

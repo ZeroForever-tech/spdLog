@@ -5,7 +5,6 @@
 
 #include <cassert>
 #include <memory>
-#include <mutex>
 
 #include "spdlog/common.h"
 #include "spdlog/details/mpmc_blocking_q.h"

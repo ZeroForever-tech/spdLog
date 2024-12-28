@@ -1,5 +1,6 @@
+
 #include "includes.h"
-#include "spdlog/fmt/bin_to_hex.h"
+#include "spdlog/bin_to_hex.h"
 #include "spdlog/sinks/ostream_sink.h"
 #include "test_sink.h"
 

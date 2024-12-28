@@ -136,7 +136,7 @@ void async_example() {
 // {:p} - don't print the position on each line start.
 // {:n} - don't split the output to lines.
 
-#include "spdlog/fmt/bin_to_hex.h"
+#include "spdlog/bin_to_hex.h"
 void binary_example() {
     std::vector<char> buf;
     for (int i = 0; i < 80; i++) {

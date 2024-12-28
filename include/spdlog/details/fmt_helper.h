@@ -7,7 +7,6 @@
 #include <type_traits>
 
 #include "../common.h"
-#include "../fmt/fmt.h"
 
 // Some fmt helpers to efficiently format and pad ints and strings
 namespace spdlog {

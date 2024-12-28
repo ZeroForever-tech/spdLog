@@ -35,7 +35,7 @@ async_sink::~async_sink() {
     } catch (...) {
         printf("Exception in ~async_sink()\n");
     }
-};
+}
 
 void async_sink::log(const details::log_msg &msg) { send_message_(async_log_msg::type::log, msg); }
 

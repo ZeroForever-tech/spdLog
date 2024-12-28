@@ -22,7 +22,7 @@ class mpmc_blocking_queue;
 namespace spdlog {
 namespace sinks {
 
-class async_sink final : public sink {
+class SPDLOG_API async_sink final : public sink {
 public:
     enum class overflow_policy : std::uint8_t {
         block,           // Block until the log message can be enqueued (default).

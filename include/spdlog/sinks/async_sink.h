@@ -44,7 +44,7 @@ public:
 
     // create an async_sink with one backend sink
     template <typename Sink, typename... SinkArgs>
-    static std::shared_ptr<async_sink> with_sink(SinkArgs &&...sink_args) {
+    static std::shared_ptr<async_sink> with(SinkArgs &&...sink_args) {
         config cfg{};
         cfg.sinks.emplace_back(std::make_shared<Sink>(std::forward<SinkArgs>(sink_args)...));
         return std::make_shared<async_sink>(cfg);

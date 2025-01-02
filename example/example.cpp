@@ -120,7 +120,7 @@ void callback_example() {
 #include "spdlog/sinks/async_sink.h"
 void async_example() {
     using spdlog::sinks::async_sink;
-    auto sink = async_sink::with_sink<basic_file_sink_mt>("logs/async_log.txt", true);
+    auto sink = async_sink::with<basic_file_sink_mt>("logs/async_log.txt", true);
     auto logger = std::make_shared<spdlog::logger>("async_logger", sink);
     for (int i = 1; i < 101; ++i) {
         logger->info("Async message #{}", i);

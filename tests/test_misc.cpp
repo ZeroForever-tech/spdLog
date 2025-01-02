@@ -99,7 +99,7 @@ TEST_CASE("clone async", "[clone]") {
     {
         auto cfg = spdlog::sinks::async_sink::config();
         cfg.sinks.push_back(test_sink);
-        auto async_sink = spdlog::sinks::async_sink::with_sink<test_sink_mt>();
+        auto async_sink = spdlog::sinks::async_sink::with<test_sink_mt>();
         auto logger = spdlog::create<spdlog::sinks::async_sink>("orig", cfg);
         logger->set_pattern("*** %v ***");
         auto cloned = logger->clone("clone");

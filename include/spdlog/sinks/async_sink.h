@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "../details/async_log_msg.h"
+#include "../details/error_handler.h"
 #include "sink.h"
 
 // async_sink is a sink that sends log messages to a dist_sink in a separate thread using a queue.
@@ -73,11 +74,11 @@ private:
     void backend_loop_();
     void backend_log_(const details::log_msg &msg) ;
     void backend_flush_();
-    void err_handler_(const std::string &msg);
 
     config config_;
     std::unique_ptr<queue_t> q_;
     std::thread worker_thread_;
+    details::error_handler err_handler_;
 };
 
 }  // namespace sinks

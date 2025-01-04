@@ -2,9 +2,7 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
 #include "spdlog/logger.h"
-
 #include <cstdio>
-#include <mutex>
 
 #include "spdlog/pattern_formatter.h"
 #include "spdlog/sinks/sink.h"
@@ -17,14 +15,14 @@ logger::logger(const logger &other) noexcept
       sinks_(other.sinks_),
       level_(other.level_.load(std::memory_order_relaxed)),
       flush_level_(other.flush_level_.load(std::memory_order_relaxed)),
-      custom_err_handler_(other.custom_err_handler_) {}
+      err_handler_(other.err_handler_) {}
 
 logger::logger(logger &&other) noexcept
     : name_(std::move(other.name_)),
       sinks_(std::move(other.sinks_)),
       level_(other.level_.load(std::memory_order_relaxed)),
       flush_level_(other.flush_level_.load(std::memory_order_relaxed)),
-      custom_err_handler_(std::move(other.custom_err_handler_)) {}
+      err_handler_(std::move(other.err_handler_)) {}
 
 void logger::set_level(level level) { level_.store(level); }
 
@@ -62,13 +60,16 @@ const std::vector<sink_ptr> &logger::sinks() const { return sinks_; }
 
 std::vector<sink_ptr> &logger::sinks() { return sinks_; }
 
-// error handler
-void logger::set_error_handler(err_handler handler) { custom_err_handler_ = std::move(handler); }
+// custom error handler
+void logger::set_error_handler(err_handler handler) {
+    err_handler_.set_custom_handler(std::move(handler));
+}
 
 // create new logger with same sinks and configuration.
 std::shared_ptr<logger> logger::clone(std::string logger_name) {
     auto cloned = std::make_shared<logger>(*this);
     cloned->name_ = std::move(logger_name);
+    cloned->err_handler_.set_name(cloned->name_);
     return cloned;
 }
 
@@ -78,7 +79,7 @@ void logger::flush_() {
         try {
             sink->flush();
         }
-        SPDLOG_LOGGER_CATCH(source_loc())
+        SPDLOG_LOGGER_CATCH(source_loc{})
     }
 }
 
@@ -87,20 +88,4 @@ bool logger::should_flush_(const details::log_msg &msg) const {
     return (msg.log_level >= flush_level) && (msg.log_level != level::off);
 }
 
-void logger::err_handler_(const std::string &msg) {
-    if (custom_err_handler_) {
-        custom_err_handler_(msg);
-    } else {
-        using std::chrono::system_clock;
-        auto now = system_clock::now();
-        auto tm_time = details::os::localtime(system_clock::to_time_t(now));
-        char date_buf[64];
-        std::strftime(date_buf, sizeof(date_buf), "%Y-%m-%d %H:%M:%S", &tm_time);
-#if defined(USING_R) && defined(R_R_H)  // if in R environment
-        REprintf("[*** LOG ERROR ***] [%s] [%s] %s\n", date_buf, name().c_str(), msg.c_str());
-#else
-        std::fprintf(stderr, "[*** LOG ERROR ***] [%s] [%s] %s\n", date_buf, name().c_str(), msg.c_str());
-#endif
-    }
-}
 }  // namespace spdlog

@@ -20,19 +20,15 @@
 
 #include "common.h"
 #include "details/log_msg.h"
+#include "details/error_handler.h"
 #include "sinks/sink.h"
 
 #define SPDLOG_LOGGER_CATCH(location)                                                                                     \
     catch (const std::exception &ex) {                                                                                    \
-        if (!location.empty()) {                                                                                          \
-            err_handler_(fmt_lib::format(SPDLOG_FMT_STRING("{} [{}({})]"), ex.what(), location.filename, location.line)); \
-        } else {                                                                                                          \
-            err_handler_(ex.what());                                                                                      \
-        }                                                                                                                 \
+        err_handler_.handle(location, ex.what());                                                                                           \
     }                                                                                                                     \
     catch (...) {                                                                                                         \
-        err_handler_("Rethrowing unknown exception in logger");                                                           \
-        throw;                                                                                                            \
+        err_handler_.handle(location, "Unknown exception");                                                           \
     }
 
 namespace spdlog {
@@ -41,13 +37,15 @@ class SPDLOG_API logger {
 public:
     // Empty logger
     explicit logger(std::string name)
-        : name_(std::move(name)) {}
+        : name_(name),
+          err_handler_(std::move(name)) {}
 
     // Logger with range on sinks
     template <typename It>
     logger(std::string name, It begin, It end)
-        : name_(std::move(name)),
-          sinks_(begin, end) {}
+        : name_(name),
+          sinks_(begin, end),
+          err_handler_(std::move(name)) {}
 
     // Logger with single sink
     logger(std::string name, sink_ptr single_sink)
@@ -175,7 +173,7 @@ private:
     std::vector<sink_ptr> sinks_;
     atomic_level_t level_{level::info};
     atomic_level_t flush_level_{level::off};
-    err_handler custom_err_handler_{nullptr};
+    details::error_handler err_handler_;
 
     // common implementation for after templated public api has been resolved to format string and
     // args
@@ -208,9 +206,6 @@ private:
     }
     void flush_();
     [[nodiscard]] bool should_flush_(const details::log_msg &msg) const;
-
-    // default handler prints the error to stderr
-    void err_handler_(const std::string &msg);
 };
 
 }  // namespace spdlog

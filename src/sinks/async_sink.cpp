@@ -15,7 +15,7 @@ namespace spdlog {
 namespace sinks {
 
 async_sink::async_sink(config async_config)
-    : config_(std::move(async_config)) {
+    : config_(std::move(async_config)), err_handler_("async_sink") {
     if (config_.queue_size == 0 || config_.queue_size > max_queue_size) {
         throw spdlog_ex("async_sink: invalid queue size");
     }
@@ -107,7 +107,7 @@ void async_sink::backend_log_(const details::log_msg &msg)  {
             try {
                 sink->log(msg);
             } catch (const std::exception &ex) {
-                err_handler_(std::string("async log failed: ") + ex.what());
+                err_handler_.handle(msg.source, std::string("async log failed: ") + ex.what());
             }
         }
     }
@@ -118,24 +118,11 @@ void async_sink::backend_flush_() {
         try {
             sink->flush();
         } catch (const std::exception &ex) {
-            err_handler_(std::string("async flush failed: ") + ex.what());
+            err_handler_.handle(source_loc{}, std::string("async flush failed: ") + ex.what());
         } catch (...) {
-            err_handler_("Async flush failed with unknown exception");
+            err_handler_.handle(source_loc{}, "Async flush failed with unknown exception");
         }
     }
 }
-void async_sink::err_handler_(const std::string &message) {
-    using std::chrono::system_clock;
-    const auto now = system_clock::now();
-    const auto tm_time = details::os::localtime(system_clock::to_time_t(now));
-    char date_buf[64];
-    std::strftime(date_buf, sizeof(date_buf), "%Y-%m-%d %H:%M:%S", &tm_time);
-#if defined(USING_R) && defined(R_R_H)  // if in R environment
-    REprintf("[*** LOG ERROR ***] [%s] [%s] %s\n", date_buf, name().c_str(), message.c_str());
-#else
-    std::fprintf(stderr, "[*** LOG ERROR ***] [%s] %s\n", date_buf, message.c_str());
-#endif
-}
-
 }  // namespace sinks
 }  // namespace spdlog

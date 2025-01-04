@@ -7,7 +7,7 @@
 #include "includes.h"
 #include "spdlog/sinks/basic_file_sink.h"
 
-spdlog::filename_t log_filename = SPDLOG_FILENAME_T("test_logs/simple_log.txt");
+static spdlog::filename_t log_filename = SPDLOG_FILENAME_T("test_logs/simple_log.txt");
 static std::string log_err_msg = "Error during log";
 static std::string flush_err_msg = "Error during flush";
 

@@ -209,8 +209,7 @@ private:
     void flush_();
     [[nodiscard]] bool should_flush_(const details::log_msg &msg) const;
 
-    // handle errors during logging.
-    // default handler prints the error to stderr at max rate of 1 message/sec.
+    // default handler prints the error to stderr
     void err_handler_(const std::string &msg);
 };
 

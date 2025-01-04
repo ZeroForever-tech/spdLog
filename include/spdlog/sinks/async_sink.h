@@ -70,9 +70,10 @@ private:
     using queue_t = details::mpmc_blocking_queue<async_log_msg>;
 
     void send_message_(async_log_msg::type msg_type, const details::log_msg &msg) const;
-    void backend_loop_() const;
-    void backend_log_(const details::log_msg &msg) const;
-    void backend_flush_() const;
+    void backend_loop_();
+    void backend_log_(const details::log_msg &msg) ;
+    void backend_flush_();
+    void err_handler_(const std::string &msg);
 
     config config_;
     std::unique_ptr<queue_t> q_;

@@ -286,3 +286,12 @@ TEST_CASE("level-off", "[async]") {
     REQUIRE(test_sink->msg_counter() == 0);
     REQUIRE(test_sink->flush_counter() == 0);
 }
+
+TEST_CASE("backend_ex", "[async]") {
+    const auto test_sink = std::make_shared<test_sink_mt>();
+    test_sink->set_exception(std::runtime_error("test backend exception"));
+    constexpr size_t queue_size = 16;
+    auto [logger, async_sink] = creat_async_logger(queue_size, test_sink);
+    REQUIRE_NOTHROW(logger->info("Hello message"));
+    REQUIRE_NOTHROW(logger->flush());
+}

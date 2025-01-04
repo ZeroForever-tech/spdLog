@@ -8,7 +8,8 @@
 namespace spdlog {
 namespace details {
 
-// print error to stderr with source location if present
+// Prints error to stderr with source location (if available). A stderr sink is not used because reaching
+// this point might indicate a problem with the logging system itself so we use fputs() directly.
 void default_err_handler::handle_ex(const std::string &origin, const source_loc &loc, const std::exception &ex) const {
     std::lock_guard lk{mutex_};
     const auto tm_time = os::localtime();

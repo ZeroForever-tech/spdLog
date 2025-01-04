@@ -7,7 +7,7 @@
 #include "includes.h"
 #include "spdlog/sinks/basic_file_sink.h"
 
-static std::string log_filename = "test_logs/simple_log.txt";
+spdlog::filename_t log_filename = SPDLOG_FILENAME_T("test_logs/simple_log.txt");
 static std::string log_err_msg = "Error during log";
 static std::string flush_err_msg = "Error during flush";
 
@@ -18,11 +18,11 @@ protected:
 };
 struct custom_ex {};
 
+
 using namespace spdlog::sinks;
 TEST_CASE("default_error_handler", "[errors]") {
     prepare_logdir();
-    spdlog::filename_t filename = SPDLOG_FILENAME_T(log_filename);
-    auto logger = spdlog::create<basic_file_sink_mt>("test-error", filename);
+    auto logger = spdlog::create<basic_file_sink_mt>("test-error", log_filename);
     logger->set_pattern("%v");
     logger->info(SPDLOG_FMT_RUNTIME("Test message {} {}"), 1);
     logger->info("Test message {}", 2);
@@ -34,8 +34,7 @@ TEST_CASE("default_error_handler", "[errors]") {
 
 TEST_CASE("custom_error_handler", "[errors]") {
     prepare_logdir();
-    spdlog::filename_t filename = SPDLOG_FILENAME_T(log_filename);
-    auto logger = spdlog::create<basic_file_sink_mt>("test-error", filename);
+    auto logger = spdlog::create<basic_file_sink_mt>("test-error", log_filename);
     logger->flush_on(spdlog::level::info);
     logger->set_error_handler([=](const std::string & msg) {
         REQUIRE(msg == "argument not found");

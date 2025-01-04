@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <mutex>
 #include "spdlog/common.h"
 
 // by default, prints the error to stderr, thread safe

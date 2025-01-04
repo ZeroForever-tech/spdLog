@@ -11,10 +11,12 @@
 // by default, prints the error to stderr, thread safe
 namespace spdlog {
 namespace details {
-class default_err_handler {
-    mutable std::mutex mutex_;
+class err_helper {
+    err_handler custom_err_handler_;
 public:
     void handle_ex(const std::string& origin, const source_loc& loc, const std::exception& ex) const;
+    void handle_unknown_ex(const std::string& origin, const source_loc& loc) const;
+    void set_err_handler(err_handler handler);
 };
 
 

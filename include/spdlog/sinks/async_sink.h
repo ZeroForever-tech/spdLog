@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "../details/async_log_msg.h"
-#include "../details/default_err_handler.h"
+#include "../details/err_helper.h"
 #include "sink.h"
 
 // async_sink is a sink that sends log messages to a dist_sink in a separate thread using a queue.
@@ -39,6 +39,7 @@ public:
         std::vector<std::shared_ptr<sink>> sinks;
         std::function<void()> on_thread_start = nullptr;
         std::function<void()> on_thread_stop = nullptr;
+        err_handler err_handler = nullptr;
     };
 
     explicit async_sink(config async_config);
@@ -78,7 +79,7 @@ private:
     config config_;
     std::unique_ptr<queue_t> q_;
     std::thread worker_thread_;
-    details::default_err_handler err_handler_;
+    details::err_helper err_helper_;
 };
 
 }  // namespace sinks

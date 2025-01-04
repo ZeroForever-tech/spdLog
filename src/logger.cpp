@@ -14,14 +14,14 @@ logger::logger(const logger &other) noexcept
       sinks_(other.sinks_),
       level_(other.level_.load(std::memory_order_relaxed)),
       flush_level_(other.flush_level_.load(std::memory_order_relaxed)),
-      custom_err_handler_(other.custom_err_handler_) {}
+      err_helper_(other.err_helper_) {}
 
 logger::logger(logger &&other) noexcept
     : name_(std::move(other.name_)),
       sinks_(std::move(other.sinks_)),
       level_(other.level_.load(std::memory_order_relaxed)),
       flush_level_(other.flush_level_.load(std::memory_order_relaxed)),
-      custom_err_handler_(std::move(other.custom_err_handler_)) {}
+      err_helper_(std::move(other.err_helper_)) {}
 
 void logger::set_level(level level) { level_.store(level); }
 
@@ -60,7 +60,7 @@ const std::vector<sink_ptr> &logger::sinks() const { return sinks_; }
 std::vector<sink_ptr> &logger::sinks() { return sinks_; }
 
 // custom error handler
-void logger::set_error_handler(err_handler handler) { custom_err_handler_ = std::move(handler); }
+void logger::set_error_handler(err_handler handler) { err_helper_.set_err_handler(std::move(handler)); }
 
 // create new logger with same sinks and configuration.
 std::shared_ptr<logger> logger::clone(std::string logger_name) {
@@ -75,32 +75,16 @@ void logger::flush_() {
         try {
             sink->flush();
         } catch (const std::exception &ex) {
-            handle_ex_(source_loc{}, ex);
+            err_helper_.handle_ex(name_, source_loc{}, ex);
         } catch (...) {
-            handle_unknown_ex_(source_loc{});
+            err_helper_.handle_unknown_ex(name_, source_loc{});
         }
     }
 }
 
 bool logger::should_flush_(const details::log_msg &msg) const {
-    auto flush_level = flush_level_.load(std::memory_order_relaxed);
+    const auto flush_level = flush_level_.load(std::memory_order_relaxed);
     return (msg.log_level >= flush_level) && (msg.log_level != level::off);
-}
-
-void logger::handle_ex_(const source_loc &loc, const std::exception &ex) const {
-    if (custom_err_handler_) {
-        custom_err_handler_(ex.what());
-        return;
-    }
-    default_err_handler_.handle_ex(name_, loc, ex);
-}
-
-void logger::handle_unknown_ex_(const source_loc &loc) const {
-    if (custom_err_handler_) {
-        custom_err_handler_("unknown exception");
-        return;
-    }
-    default_err_handler_.handle_ex(name_, loc, std::runtime_error("Unknown exception"));
 }
 
 }  // namespace spdlog

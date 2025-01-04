@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "common.h"
-#include "details/default_err_handler.h"
+#include "details/err_helper.h"
 #include "details/log_msg.h"
 #include "sinks/sink.h"
 
@@ -160,8 +160,7 @@ private:
     std::vector<sink_ptr> sinks_;
     atomic_level_t level_{level::info};
     atomic_level_t flush_level_{level::off};
-    err_handler custom_err_handler_;
-    details::default_err_handler default_err_handler_;
+    details::err_helper err_helper_;
 
     // common implementation for after templated public api has been resolved to format string and
     // args
@@ -173,9 +172,9 @@ private:
             fmt::vformat_to(std::back_inserter(buf), format_string, fmt::make_format_args(args...));
             sink_it_(details::log_msg(loc, name_, lvl, string_view_t(buf.data(), buf.size())));
         } catch (const std::exception &ex) {
-            handle_ex_(loc, ex);
+            err_helper_.handle_ex(name_, loc, ex);
         } catch (...) {
-            handle_unknown_ex_(loc);
+            err_helper_.handle_unknown_ex(name_, loc);
         }
     }
 
@@ -187,9 +186,9 @@ private:
                 try {
                     sink->log(msg);
                 } catch (const std::exception &ex) {
-                    handle_ex_(msg.source, ex);
+                    err_helper_.handle_ex(name_, msg.source, ex);
                 } catch (...) {
-                    handle_unknown_ex_(msg.source);
+                    err_helper_.handle_unknown_ex(name_, msg.source);
                 }
             }
         }
@@ -200,9 +199,6 @@ private:
     }
     void flush_();
     [[nodiscard]] bool should_flush_(const details::log_msg &msg) const;
-
-    void handle_ex_(const source_loc &loc, const std::exception &ex) const;
-    void handle_unknown_ex_(const source_loc &loc) const;
 };
 
 }  // namespace spdlog

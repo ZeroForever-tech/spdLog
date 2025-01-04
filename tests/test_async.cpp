@@ -23,9 +23,9 @@ auto creat_async_logger(size_t queue_size, std::shared_ptr<sink> backend_sink) {
 TEST_CASE("basic async test ", "[async]") {
     const auto test_sink = std::make_shared<test_sink_mt>();
     size_t overrun_counter = 0;
-    const size_t queue_size = 16;
     size_t messages = 256;
     {
+        constexpr size_t queue_size = 16;
         auto [logger, async_sink] = creat_async_logger(queue_size, test_sink);
         for (size_t i = 0; i < messages; i++) {
             logger->info("Hello message #{}", i);
@@ -86,9 +86,9 @@ TEST_CASE("discard policy discard_new ", "[async]") {
 
 TEST_CASE("flush", "[async]") {
     auto test_sink = std::make_shared<test_sink_mt>();
-    size_t queue_size = 256;
     size_t messages = 256;
     {
+        constexpr size_t queue_size = 256;
         auto [logger, async_sink] = creat_async_logger(queue_size, test_sink);
         for (size_t i = 0; i < messages; i++) {
             logger->info("Hello message #{}", i);
@@ -125,10 +125,10 @@ TEST_CASE("wait_dtor ", "[async]") {
 
 TEST_CASE("multi threads", "[async]") {
     auto test_sink = std::make_shared<spdlog::sinks::test_sink_mt>();
-    size_t queue_size = 128;
     size_t messages = 256;
     size_t n_threads = 10;
     {
+        constexpr size_t queue_size = 128;
         auto [logger, async_sink] = creat_async_logger(queue_size, test_sink);
 
         std::vector<std::thread> threads;
@@ -273,9 +273,9 @@ TEST_CASE("multi-sinks", "[async]") {
 TEST_CASE("level-off", "[async]") {
     const auto test_sink = std::make_shared<test_sink_mt>();
     test_sink->set_level(spdlog::level::critical);
-    const size_t queue_size = 16;
-    size_t messages = 256;
     {
+        constexpr size_t messages = 256;
+        constexpr size_t queue_size = 16;
         auto [logger, async_sink] = creat_async_logger(queue_size, test_sink);
         logger->flush_on(spdlog::level::critical);
         for (size_t i = 0; i < messages; i++) {

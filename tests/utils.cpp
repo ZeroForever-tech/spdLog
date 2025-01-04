@@ -51,7 +51,7 @@ std::size_t get_filesize(const std::string &filename) {
         throw std::runtime_error("Failed open file ");
     }
 
-    return ifs.tellg();
+    return static_cast<size_t>(ifs.tellg());
 }
 
 // source: https://stackoverflow.com/a/2072890/192001

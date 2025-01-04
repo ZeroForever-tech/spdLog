@@ -2,7 +2,6 @@
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
 #include "spdlog/logger.h"
-#include <cstdio>
 
 #include "spdlog/pattern_formatter.h"
 #include "spdlog/sinks/sink.h"
@@ -15,14 +14,14 @@ logger::logger(const logger &other) noexcept
       sinks_(other.sinks_),
       level_(other.level_.load(std::memory_order_relaxed)),
       flush_level_(other.flush_level_.load(std::memory_order_relaxed)),
-      err_handler_(other.err_handler_) {}
+      custom_err_handler_(other.custom_err_handler_) {}
 
 logger::logger(logger &&other) noexcept
     : name_(std::move(other.name_)),
       sinks_(std::move(other.sinks_)),
       level_(other.level_.load(std::memory_order_relaxed)),
       flush_level_(other.flush_level_.load(std::memory_order_relaxed)),
-      err_handler_(std::move(other.err_handler_)) {}
+      custom_err_handler_(std::move(other.custom_err_handler_)) {}
 
 void logger::set_level(level level) { level_.store(level); }
 
@@ -62,14 +61,13 @@ std::vector<sink_ptr> &logger::sinks() { return sinks_; }
 
 // custom error handler
 void logger::set_error_handler(err_handler handler) {
-    err_handler_.set_custom_handler(std::move(handler));
+    custom_err_handler_ = std::move(handler);
 }
 
 // create new logger with same sinks and configuration.
 std::shared_ptr<logger> logger::clone(std::string logger_name) {
     auto cloned = std::make_shared<logger>(*this);
     cloned->name_ = std::move(logger_name);
-    cloned->err_handler_.set_name(cloned->name_);
     return cloned;
 }
 
@@ -80,10 +78,10 @@ void logger::flush_() {
             sink->flush();
         }
         catch (const std::exception &ex) {                                                                                    \
-            err_handler_.handle(source_loc{}, ex.what());                                                                                           \
+            handle_error_(source_loc{}, ex.what());                                                                                           \
         }                                                                                                                     \
         catch (...) {                                                                                                         \
-            err_handler_.handle(source_loc{}, "Unknown exception");                                                           \
+            handle_error_(source_loc{}, "Unknown exception");                                                           \
         }
     }
 }
@@ -91,6 +89,14 @@ void logger::flush_() {
 bool logger::should_flush_(const details::log_msg &msg) const {
     auto flush_level = flush_level_.load(std::memory_order_relaxed);
     return (msg.log_level >= flush_level) && (msg.log_level != level::off);
+}
+
+void logger::handle_error_(const source_loc &loc, const std::string &err_msg) const {
+    if (custom_err_handler_) {
+        custom_err_handler_(err_msg);
+        return;
+    }
+    default_err_handler_.handle(name_, loc, err_msg);
 }
 
 }  // namespace spdlog

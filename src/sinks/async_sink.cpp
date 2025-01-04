@@ -15,7 +15,7 @@ namespace spdlog {
 namespace sinks {
 
 async_sink::async_sink(config async_config)
-    : config_(std::move(async_config)), err_handler_("async_sink") {
+    : config_(std::move(async_config)) {
     if (config_.queue_size == 0 || config_.queue_size > max_queue_size) {
         throw spdlog_ex("async_sink: invalid queue size");
     }
@@ -107,7 +107,7 @@ void async_sink::backend_log_(const details::log_msg &msg)  {
             try {
                 sink->log(msg);
             } catch (const std::exception &ex) {
-                err_handler_.handle(msg.source, std::string("async log failed: ") + ex.what());
+                err_handler_.handle("async", msg.source, std::string("async log failed: ") + ex.what());
             }
         }
     }
@@ -118,9 +118,9 @@ void async_sink::backend_flush_() {
         try {
             sink->flush();
         } catch (const std::exception &ex) {
-            err_handler_.handle(source_loc{}, std::string("async flush failed: ") + ex.what());
+            err_handler_.handle("async", source_loc{}, std::string("async flush failed: ") + ex.what());
         } catch (...) {
-            err_handler_.handle(source_loc{}, "Async flush failed with unknown exception");
+            err_handler_.handle("async", source_loc{}, "Async flush failed with unknown exception");
         }
     }
 }

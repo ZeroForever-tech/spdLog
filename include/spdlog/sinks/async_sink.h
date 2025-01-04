@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "../details/async_log_msg.h"
-#include "../details/error_handler.h"
+#include "../details/default_err_handler.h"
 #include "sink.h"
 
 // async_sink is a sink that sends log messages to a dist_sink in a separate thread using a queue.
@@ -78,7 +78,7 @@ private:
     config config_;
     std::unique_ptr<queue_t> q_;
     std::thread worker_thread_;
-    details::error_handler err_handler_;
+    details::default_err_handler err_handler_;
 };
 
 }  // namespace sinks

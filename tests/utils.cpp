@@ -4,7 +4,6 @@
     #include <windows.h>
 #else
     #include <dirent.h>
-    #include <sys/types.h>
 #endif
 
 void prepare_logdir() {
@@ -52,7 +51,7 @@ std::size_t get_filesize(const std::string &filename) {
         throw std::runtime_error("Failed open file ");
     }
 
-    return static_cast<std::size_t>(ifs.tellg());
+    return ifs.tellg();
 }
 
 // source: https://stackoverflow.com/a/2072890/192001
@@ -72,7 +71,7 @@ std::size_t count_files(const std::string &folder) {
     // Start iterating over the files in the folder directory.
     HANDLE hFind = ::FindFirstFileA((folder + "\\*").c_str(), &ffd);
     if (hFind != INVALID_HANDLE_VALUE) {
-        do  // Managed to locate and create an handle to that folder.
+        do  // Managed to locate and create a handle to that folder.
         {
             if (ffd.cFileName[0] != '.') counter++;
         } while (::FindNextFileA(hFind, &ffd) != 0);

@@ -8,7 +8,7 @@ std::size_t count_files(const std::string &folder);
 
 void prepare_logdir();
 
-std::string file_contents(const std::string &filename);
+std::string file_contents(const std::filesystem::path &filename);
 
 // std::size_t count_lines(const std::string &filename);
 std::size_t count_lines(const std::filesystem::path &filename);

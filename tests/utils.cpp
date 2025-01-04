@@ -18,7 +18,7 @@ void prepare_logdir() {
 #endif
 }
 
-std::string file_contents(const std::string &filename) {
+std::string file_contents(const std::filesystem::path &filename) {
     std::ifstream ifs(filename, std::ios_base::binary);
     if (!ifs) {
         throw std::runtime_error("Failed open file ");
@@ -26,7 +26,7 @@ std::string file_contents(const std::string &filename) {
     return std::string((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
 }
 
-std::size_t count_lines(const spdlog::filename_t &filename) {
+std::size_t count_lines(const std::filesystem::path &filename) {
     std::ifstream ifs(filename);
     if (!ifs) {
         throw std::runtime_error("Failed open file ");

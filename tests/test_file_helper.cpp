@@ -136,7 +136,7 @@ TEST_CASE("file_event_handlers", "[file_helper]") {
         events.clear();
         helper.close();
         REQUIRE(events == std::vector<flags>{flags::before_close, flags::after_close});
-        REQUIRE(file_contents(TEST_FILENAME) == "after_open\nbefore_close\n");
+        REQUIRE(file_contents(SPDLOG_FILENAME_T(TEST_FILENAME)) == "after_open\nbefore_close\n");
 
         helper.reopen(true);
         events.clear();

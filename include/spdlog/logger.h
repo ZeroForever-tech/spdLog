@@ -23,14 +23,6 @@
 #include "details/error_handler.h"
 #include "sinks/sink.h"
 
-#define SPDLOG_LOGGER_CATCH(location)                                                                                     \
-    catch (const std::exception &ex) {                                                                                    \
-        err_handler_.handle(location, ex.what());                                                                                           \
-    }                                                                                                                     \
-    catch (...) {                                                                                                         \
-        err_handler_.handle(location, "Unknown exception");                                                           \
-    }
-
 namespace spdlog {
 
 class SPDLOG_API logger {
@@ -185,7 +177,12 @@ private:
             fmt::vformat_to(std::back_inserter(buf), format_string, fmt::make_format_args(args...));
             sink_it_(details::log_msg(loc, name_, lvl, string_view_t(buf.data(), buf.size())));
         }
-        SPDLOG_LOGGER_CATCH(loc)
+        catch (const std::exception &ex) {                                                                                    \
+            err_handler_.handle(loc, ex.what());                                                                                           \
+        }                                                                                                                     \
+        catch (...) {                                                                                                         \
+            err_handler_.handle(loc, "Unknown exception");                                                           \
+        }
     }
 
     // log the given message (if the given log level is high enough)
@@ -196,7 +193,12 @@ private:
                 try {
                     sink->log(msg);
                 }
-                SPDLOG_LOGGER_CATCH(msg.source)
+                catch (const std::exception &ex) {                                                                                    \
+                    err_handler_.handle(msg.source, ex.what());                                                                                           \
+                }                                                                                                                     \
+                catch (...) {                                                                                                         \
+                    err_handler_.handle(msg.source, "Unknown exception");                                                           \
+                }
             }
         }
 

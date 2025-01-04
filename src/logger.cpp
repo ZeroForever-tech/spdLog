@@ -79,7 +79,12 @@ void logger::flush_() {
         try {
             sink->flush();
         }
-        SPDLOG_LOGGER_CATCH(source_loc{})
+        catch (const std::exception &ex) {                                                                                    \
+            err_handler_.handle(source_loc{}, ex.what());                                                                                           \
+        }                                                                                                                     \
+        catch (...) {                                                                                                         \
+            err_handler_.handle(source_loc{}, "Unknown exception");                                                           \
+        }
     }
 }
 

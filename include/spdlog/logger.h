@@ -26,12 +26,12 @@ class SPDLOG_API logger {
 public:
     // Empty logger
     explicit logger(std::string name)
-        : name_(name) {}
+        : name_(std::move(name)) {}
 
     // Logger with range on sinks
     template <typename It>
     logger(std::string name, It begin, It end)
-        : name_(name),
+        : name_(std::move(name)),
           sinks_(begin, end) {}
 
     // Logger with single sink

@@ -107,7 +107,7 @@ void async_sink::backend_log_(const details::log_msg &msg)  {
             try {
                 sink->log(msg);
             } catch (const std::exception &ex) {
-                err_handler_.handle("async", msg.source, std::string("async log failed: ") + ex.what());
+                err_handler_.handle_ex("async log", msg.source, ex);
             }
         }
     }
@@ -118,9 +118,9 @@ void async_sink::backend_flush_() {
         try {
             sink->flush();
         } catch (const std::exception &ex) {
-            err_handler_.handle("async", source_loc{}, std::string("async flush failed: ") + ex.what());
+            err_handler_.handle_ex("async flush", source_loc{}, ex);
         } catch (...) {
-            err_handler_.handle("async", source_loc{}, "Async flush failed with unknown exception");
+            err_handler_.handle_ex("async flush", source_loc{}, std::runtime_error("Unknown exception during flush"));
         }
     }
 }

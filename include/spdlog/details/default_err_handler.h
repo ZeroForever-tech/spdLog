@@ -5,6 +5,7 @@
 
 #include <string>
 #include <mutex>
+#include <exception>
 #include "spdlog/common.h"
 
 // by default, prints the error to stderr, thread safe
@@ -13,7 +14,7 @@ namespace details {
 class default_err_handler {
     mutable std::mutex mutex_;
 public:
-    void handle(const std::string& origin, const source_loc& loc, const std::string &err_msg) const;
+    void handle_ex(const std::string& origin, const source_loc& loc, const std::exception& ex) const;
 };
 
 

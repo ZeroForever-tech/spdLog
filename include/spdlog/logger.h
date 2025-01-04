@@ -3,20 +3,13 @@
 
 #pragma once
 
-// Thread safe logger, Except for the following methods which are not thread-safe:
-//   set_pattern()
-//   set_formatter()
-//   set_error_handler()
-//   sinks() non const version
-// Has name, log level, vector of std::shared sink pointers and formatter
-// Upon each log write the logger:
-// 1. Checks if its log level is enough to log the message and if yes:
-// 2. Call the underlying sinks to do the job.
-// 3. Each sink use its own private copy of a formatter to format the message
-// and send to its destination.
-//
-// The use of private formatter per sink provides the opportunity to cache some
-// formatted data, and support for different format per sink.
+// Thread-safe logger, with exceptions for these non-thread-safe methods:
+//   set_pattern()       - Modifies the log pattern.
+//   set_formatter()     - Sets a new formatter.
+//   set_error_handler() - Assigns a new error handler.
+//   sinks() (non-const) - Accesses and potentially modifies the sinks directly.
+// By default, the logger does not throw exceptions during logging.
+// To enable exception throwing for logging errors, set a custom error handler.
 
 #include <cassert>
 #include <iterator>
@@ -179,12 +172,10 @@ private:
             memory_buf_t buf;
             fmt::vformat_to(std::back_inserter(buf), format_string, fmt::make_format_args(args...));
             sink_it_(details::log_msg(loc, name_, lvl, string_view_t(buf.data(), buf.size())));
-        }
-        catch (const std::exception &ex) {                                                                                    \
-            handle_error_(loc, ex.what());                                                                                           \
-        }                                                                                                                     \
-        catch (...) {                                                                                                         \
-            handle_error_(loc, "Unknown exception");                                                           \
+        } catch (const std::exception &ex) {
+            handle_ex_(loc, ex);
+        } catch (...) {
+            handle_unknown_ex_(loc);
         }
     }
 
@@ -195,12 +186,10 @@ private:
             if (sink->should_log(msg.log_level)) {
                 try {
                     sink->log(msg);
-                }
-                catch (const std::exception &ex) {                                                                                    \
-                    handle_error_(msg.source, ex.what());                                                                                           \
-                }                                                                                                                     \
-                catch (...) {                                                                                                         \
-                    handle_error_(msg.source, "Unknown exception");                                                           \
+                } catch (const std::exception &ex) {
+                    handle_ex_(msg.source, ex);
+                } catch (...) {
+                    handle_unknown_ex_(msg.source);
                 }
             }
         }
@@ -212,7 +201,8 @@ private:
     void flush_();
     [[nodiscard]] bool should_flush_(const details::log_msg &msg) const;
 
-    void handle_error_(const source_loc& loc, const std::string &err_msg) const;
+    void handle_ex_(const source_loc &loc, const std::exception &ex) const;
+    void handle_unknown_ex_(const source_loc &loc) const;
 };
 
 }  // namespace spdlog

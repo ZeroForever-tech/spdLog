@@ -39,7 +39,7 @@ public:
         std::vector<std::shared_ptr<sink>> sinks;
         std::function<void()> on_thread_start = nullptr;
         std::function<void()> on_thread_stop = nullptr;
-        err_handler err_handler = nullptr;
+        err_handler custom_err_handler = nullptr;
     };
 
     explicit async_sink(config async_config);

@@ -11,7 +11,7 @@
 // by default, prints the error to stderr, thread safe
 namespace spdlog {
 namespace details {
-class err_helper {
+class SPDLOG_API err_helper {
     err_handler custom_err_handler_;
 public:
     void handle_ex(const std::string& origin, const source_loc& loc, const std::exception& ex) const;

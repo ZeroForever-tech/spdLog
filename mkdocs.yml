@@ -1,0 +1,5 @@
+site_name: spdlog
+nav:
+  - Home: index.md
+theme:
+  name: material  # Optional: Change theme here

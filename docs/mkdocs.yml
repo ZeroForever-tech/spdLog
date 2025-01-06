@@ -3,4 +3,6 @@ site_name: spdlog
 nav:
   - Home: index.md
 theme:
-  name: mkdocs 
+  name: mkdocs
+  color_mode: dark
+    

@@ -133,7 +133,6 @@ option(
     "prevent spdlog from using of std::atomic log levels (use only if your code never modifies log levels concurrently"
     OFF)
 option(SPDLOG_DISABLE_DEFAULT_LOGGER "Disable default logger creation" OFF)
-
 option(SPDLOG_FWRITE_UNLOCKED "Use the unlocked variant of fwrite. Leave this on unless your libc doesn't have it" ON)
 
 # clang-tidy

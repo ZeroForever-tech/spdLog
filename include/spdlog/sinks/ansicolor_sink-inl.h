@@ -82,7 +82,7 @@ SPDLOG_INLINE void ansicolor_sink<ConsoleMutex>::set_formatter(
 }
 
 template <typename ConsoleMutex>
-SPDLOG_INLINE bool ansicolor_sink<ConsoleMutex>::should_color() {
+SPDLOG_INLINE bool ansicolor_sink<ConsoleMutex>::should_color() const {
     return should_do_colors_;
 }
 
@@ -111,14 +111,14 @@ SPDLOG_INLINE void ansicolor_sink<ConsoleMutex>::set_color_mode_(color_mode mode
 }
 
 template <typename ConsoleMutex>
-SPDLOG_INLINE void ansicolor_sink<ConsoleMutex>::print_ccode_(const string_view_t &color_code) {
+SPDLOG_INLINE void ansicolor_sink<ConsoleMutex>::print_ccode_(const string_view_t &color_code) const {
     details::os::fwrite_bytes(color_code.data(), color_code.size(), target_file_);
 }
 
 template <typename ConsoleMutex>
 SPDLOG_INLINE void ansicolor_sink<ConsoleMutex>::print_range_(const memory_buf_t &formatted,
                                                               size_t start,
-                                                              size_t end) {
+                                                              size_t end) const {
     details::os::fwrite_bytes(formatted.data() + start, end - start, target_file_);
 }
 

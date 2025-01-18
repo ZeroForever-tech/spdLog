@@ -117,6 +117,8 @@ ansicolor_stderr_sink<Mutex>::ansicolor_stderr_sink(color_mode mode)
 
 // template instantiations
 #include "spdlog/details/null_mutex.h"
+template class SPDLOG_API spdlog::sinks::ansicolor_sink<std::mutex>;
+template class SPDLOG_API spdlog::sinks::ansicolor_sink<spdlog::details::null_mutex>;
 template class SPDLOG_API spdlog::sinks::ansicolor_stdout_sink<std::mutex>;
 template class SPDLOG_API spdlog::sinks::ansicolor_stdout_sink<spdlog::details::null_mutex>;
 template class SPDLOG_API spdlog::sinks::ansicolor_stderr_sink<std::mutex>;

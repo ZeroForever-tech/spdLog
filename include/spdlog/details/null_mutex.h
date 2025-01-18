@@ -5,18 +5,17 @@
 
 #include <atomic>
 #include <utility>
-#include "../common.h"
-// null, no cost dummy "mutex" and dummy "atomic" log level
 
+// null, no cost dummy "mutex" and dummy "atomic" log level
 namespace spdlog {
 namespace details {
-struct SPDLOG_API null_mutex {
+struct null_mutex {
     void lock() const {}
     void unlock() const {}
 };
 
 template <typename T>
-struct SPDLOG_API null_atomic {
+struct null_atomic {
     T value;
 
     null_atomic() = default;

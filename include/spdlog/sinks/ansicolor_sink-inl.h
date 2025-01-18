@@ -20,7 +20,7 @@ SPDLOG_INLINE ansicolor_sink<ConsoleMutex>::ansicolor_sink(FILE *target_file, co
       formatter_(details::make_unique<spdlog::pattern_formatter>())
 
 {
-    set_color_mode(mode);
+    set_color_mode_(mode);
     colors_.at(level::trace) = to_string_(white);
     colors_.at(level::debug) = to_string_(cyan);
     colors_.at(level::info) = to_string_(green);
@@ -88,6 +88,12 @@ SPDLOG_INLINE bool ansicolor_sink<ConsoleMutex>::should_color() {
 
 template <typename ConsoleMutex>
 SPDLOG_INLINE void ansicolor_sink<ConsoleMutex>::set_color_mode(color_mode mode) {
+    std::lock_guard<mutex_t> lock(mutex_);
+    set_color_mode_(mode);
+}
+
+template <typename ConsoleMutex>
+SPDLOG_INLINE void ansicolor_sink<ConsoleMutex>::set_color_mode_(color_mode mode) {
     switch (mode) {
         case color_mode::always:
             should_do_colors_ = true;

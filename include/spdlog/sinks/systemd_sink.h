@@ -18,7 +18,7 @@ namespace spdlog {
 namespace sinks {
 
 /**
- * Sink that write to systemd journal using the `sd_journal_send()` library call.
+ * Sink that write to systemd journal using the `sd_journal_send()` and `sd_journal_sendv()` library calls.
  */
 template <typename Mutex>
 class systemd_sink : public base_sink<Mutex> {
@@ -56,13 +56,15 @@ protected:
             payload = msg.payload;
         }
 
+        const string_view_t syslog_identifier = ident_.empty() ? msg.logger_name : ident_;
+
+#ifdef SPDLOG_NO_TLS
         size_t length = payload.size();
         // limit to max int
         if (length > static_cast<size_t>(std::numeric_limits<int>::max())) {
             length = static_cast<size_t>(std::numeric_limits<int>::max());
         }
 
-        const string_view_t syslog_identifier = ident_.empty() ? msg.logger_name : ident_;
 
         // Do not send source location if not available
         if (msg.source.empty()) {
@@ -88,6 +90,49 @@ protected:
                                     msg.source.funcname, nullptr);
         }
 
+#else // SPDLOG_NO_TLS
+
+        std::vector<iovec> iovector;
+        const std::string message{std::string("MESSAGE=") + payload.data()};
+        iovector.push_back({const_cast<char *>(message.c_str()), message.length()});
+
+        const std::string priority{"PRIORITY=" + std::to_string(syslog_level(msg.level))};
+        iovector.push_back({const_cast<char *>(priority.c_str()), priority.length()});
+#ifndef SPDLOG_NO_THREAD_ID
+        const std::string tid{"TID=" + std::to_string(msg.thread_id)};
+        iovector.push_back({const_cast<char *>(tid.c_str()), tid.length()});
+#endif
+        const std::string syslog_id{std::string("SYSLOG_IDENTIFIER=") + syslog_identifier.data()};
+        iovector.push_back({const_cast<char *>(syslog_id.c_str()), syslog_id.length()});
+
+        std::string file, line, func;
+        if (!msg.source.empty()) {
+            file.assign(std::move(std::string("CODE_FILE=") + msg.source.filename));
+            iovector.push_back({const_cast<char *>(file.c_str()), file.length()});
+            line.assign(std::move(std::string("CODE_LINE=") + std::to_string(msg.source.line)));
+            iovector.push_back({const_cast<char *>(line.c_str()), line.length()});
+            func.assign(std::move(std::string("CODE_FUNC=") + msg.source.funcname));
+            iovector.push_back({const_cast<char *>(func.c_str()), func.length()});
+        }
+
+        auto &context{spdlog::mdc::get_context()};
+        std::vector<std::string> context_strings;
+        context_strings.reserve(context.size());
+        for (const auto &item : context) {
+            std::string key;
+            key.reserve(item.first.length() + item.second.length() + 1);
+            key = item.first;
+            std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+            key += '=' + item.second;
+            context_strings.emplace_back(std::move(key));
+        }
+        for (const auto &item : context_strings) {
+            iovector.push_back({const_cast<char *>(item.c_str()), item.length()});
+        }
+
+        err = sd_journal_sendv(iovector.data(), iovector.size());
+
+#endif // SPDLOG_NO_TLS
         if (err) {
             throw_spdlog_ex("Failed writing to systemd", errno);
         }

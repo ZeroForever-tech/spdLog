@@ -57,7 +57,7 @@ void bench_threaded_logging(size_t threads, int iters) {
 
 void bench_single_threaded(int iters) {
     spdlog::info("**************************************************************");
-    spdlog::info(spdlog::fmt_lib::format(std::locale("en_US.UTF-8"), "Single threaded: {} messages", iters));
+    spdlog::info(spdlog::fmt_lib::format(std::locale("en_US.UTF-8"), "Single threaded: {:L} messages", iters));
     spdlog::info("**************************************************************");
 
     auto basic_st = spdlog::create<basic_file_sink_st>("basic_st", "logs/basic_st.log", true);
@@ -94,7 +94,6 @@ int main(int argc, char *argv[]) {
         }
 
         bench_single_threaded(iters);
-        bench_threaded_logging(1, iters);
         bench_threaded_logging(threads, iters);
     } catch (std::exception &ex) {
         spdlog::error(ex.what());

@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(spdlog_examples CXX)
 
+# Example if statement
 if(NOT TARGET spdlog)
     # Stand-alone build
     find_package(spdlog REQUIRED)

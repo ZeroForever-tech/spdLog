@@ -80,7 +80,6 @@ public:
             if (rv == 0) {
                 break;
             }
-            std::cout << "HERE\n";
             last_errno = errno;
             ::close(socket_);
             socket_ = -1;

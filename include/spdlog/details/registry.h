@@ -10,6 +10,7 @@
 
 #include <spdlog/common.h>
 #include <spdlog/details/periodic_worker.h>
+#include <spdlog/details/mutex.h>
 
 #include <chrono>
 #include <functional>
@@ -65,13 +66,13 @@ public:
 
     template <typename Rep, typename Period>
     void flush_every(std::chrono::duration<Rep, Period> interval) {
-        std::lock_guard<std::mutex> lock(flusher_mutex_);
+        std::lock_guard<spdlog_mutex> lock(flusher_mutex_);
         auto clbk = [this]() { this->flush_all(); };
         periodic_flusher_ = details::make_unique<periodic_worker>(clbk, interval);
     }
 
     std::unique_ptr<periodic_worker> &get_flusher() {
-        std::lock_guard<std::mutex> lock(flusher_mutex_);
+        std::lock_guard<spdlog_mutex> lock(flusher_mutex_);
         return periodic_flusher_;
     }
 
@@ -106,8 +107,8 @@ private:
     void throw_if_exists_(const std::string &logger_name);
     void register_logger_(std::shared_ptr<logger> new_logger);
     bool set_level_from_cfg_(logger *logger);
-    std::mutex logger_map_mutex_, flusher_mutex_;
-    std::recursive_mutex tp_mutex_;
+    spdlog_mutex logger_map_mutex_, flusher_mutex_;
+    spdlog_recursive_mutex tp_mutex_;
     std::unordered_map<std::string, std::shared_ptr<logger>> loggers_;
     log_levels log_levels_;
     std::unique_ptr<formatter> formatter_;

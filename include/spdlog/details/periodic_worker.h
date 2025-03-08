@@ -10,6 +10,8 @@
 //    stops and joins the thread on destruction (if the thread is executing a callback, wait for it
 //    to finish first).
 
+#include <spdlog/details/mutex.h>
+
 #include <chrono>
 #include <condition_variable>
 #include <functional>
@@ -30,7 +32,7 @@ public:
 
         worker_thread_ = std::thread([this, callback_fun, interval]() {
             for (;;) {
-                std::unique_lock<std::mutex> lock(this->mutex_);
+                std::unique_lock<std::mutex> lock(this->mutex_.mtx());
                 if (this->cv_.wait_for(lock, interval, [this] { return !this->active_; })) {
                     return;  // active_ == false, so exit this thread
                 }
@@ -47,7 +49,7 @@ public:
 private:
     bool active_;
     std::thread worker_thread_;
-    std::mutex mutex_;
+    spdlog_mutex mutex_;
     std::condition_variable cv_;
 };
 }  // namespace details

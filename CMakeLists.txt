@@ -91,6 +91,7 @@ option(SPDLOG_USE_STD_FORMAT "Use std::format instead of fmt library." OFF)
 option(SPDLOG_FMT_EXTERNAL "Use external fmt library instead of bundled" OFF)
 option(SPDLOG_FMT_EXTERNAL_HO "Use external fmt header-only library instead of bundled" OFF)
 option(SPDLOG_NO_EXCEPTIONS "Compile with -fno-exceptions. Call abort() on any spdlog exceptions" OFF)
+option(SPDLOG_PRIORITY_INHERITANCE "Compile with priority inheritance protocols" OFF)
 
 if (SPDLOG_FMT_EXTERNAL AND SPDLOG_FMT_EXTERNAL_HO)
     message(FATAL_ERROR "SPDLOG_FMT_EXTERNAL and SPDLOG_FMT_EXTERNAL_HO are mutually exclusive")
@@ -280,6 +281,7 @@ foreach (
         SPDLOG_NO_TLS
         SPDLOG_NO_ATOMIC_LEVELS
         SPDLOG_DISABLE_DEFAULT_LOGGER
+        SPDLOG_PRIORITY_INHERITANCE
         SPDLOG_USE_STD_FORMAT)
     if (${SPDLOG_OPTION})
         target_compile_definitions(spdlog PUBLIC ${SPDLOG_OPTION})

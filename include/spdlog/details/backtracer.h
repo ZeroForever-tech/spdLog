@@ -5,6 +5,7 @@
 
 #include <spdlog/details/circular_q.h>
 #include <spdlog/details/log_msg_buffer.h>
+#include <spdlog/details/mutex.h>
 
 #include <atomic>
 #include <functional>
@@ -16,7 +17,7 @@
 namespace spdlog {
 namespace details {
 class SPDLOG_API backtracer {
-    mutable std::mutex mutex_;
+    mutable spdlog_mutex mutex_;
     std::atomic<bool> enabled_{false};
     circular_q<log_msg_buffer> messages_;
 

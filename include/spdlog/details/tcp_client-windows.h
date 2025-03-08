@@ -21,6 +21,7 @@
 
 namespace spdlog {
 namespace details {
+
 class tcp_client {
     SOCKET socket_ = INVALID_SOCKET;
 
@@ -37,42 +38,25 @@ class tcp_client {
         ::FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
                          last_error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf,
                          (sizeof(buf) / sizeof(char)), NULL);
-
         throw_spdlog_ex(fmt_lib::format("tcp_sink - {}: {}", msg, buf));
     }
 
 public:
-    tcp_client() { init_winsock_(); }
-
-    ~tcp_client() {
-        close();
-        ::WSACleanup();
-    }
-
-    bool is_connected() const { return socket_ != INVALID_SOCKET; }
-
-    void close() {
-        ::closesocket(socket_);
-        socket_ = INVALID_SOCKET;
-    }
-
-    SOCKET fd() const { return socket_; }
-
-    // try to connect or throw on failure
-    void connect(const std::string &host, int port) {
+    // Added timeout_ms parameter (in milliseconds)
+    void connect(const std::string &host, int port, int timeout_sec) {
         if (is_connected()) {
             close();
         }
-        struct addrinfo hints {};
+        struct addrinfo hints{};
         ZeroMemory(&hints, sizeof(hints));
-
-        hints.ai_family = AF_UNSPEC;      // To work with IPv4, IPv6, and so on
+        hints.ai_family = AF_UNSPEC;      // IPv4 or IPv6
         hints.ai_socktype = SOCK_STREAM;  // TCP
-        hints.ai_flags = AI_NUMERICSERV;  // port passed as as numeric value
+        hints.ai_flags = AI_NUMERICSERV;  // port as numeric value
         hints.ai_protocol = 0;
+        int timeout_ms = timeout_sec * 1000;
 
         auto port_str = std::to_string(port);
-        struct addrinfo *addrinfo_result;
+        struct addrinfo *addrinfo_result = nullptr;
         auto rv = ::getaddrinfo(host.c_str(), port_str.c_str(), &hints, &addrinfo_result);
         int last_error = 0;
         if (rv != 0) {
@@ -81,13 +65,11 @@ public:
             throw_winsock_error_("getaddrinfo failed", last_error);
         }
 
-        // Try each address until we successfully connect(2).
-
+        // Try each address until we successfully connect.
         for (auto *rp = addrinfo_result; rp != nullptr; rp = rp->ai_next) {
             socket_ = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
             if (socket_ == INVALID_SOCKET) {
                 last_error = ::WSAGetLastError();
-                WSACleanup();
                 continue;
             }
             if (::connect(socket_, rp->ai_addr, (int)rp->ai_addrlen) == 0) {
@@ -103,10 +85,41 @@ public:
             throw_winsock_error_("connect failed", last_error);
         }
 
+        if (::setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO,
+                         reinterpret_cast<const char *>(&timeout_ms),
+                         sizeof(timeout_ms)) == SOCKET_ERROR) {
+            last_error = ::WSAGetLastError();
+            WSACleanup();
+            throw_winsock_error_("setsockopt(SO_RCVTIMEO) failed", last_error);
+        }
+        if (::setsockopt(socket_, SOL_SOCKET, SO_SNDTIMEO,
+                         reinterpret_cast<const char *>(&timeout_ms),
+                         sizeof(timeout_ms)) == SOCKET_ERROR) {
+            last_error = ::WSAGetLastError();
+            WSACleanup();
+            throw_winsock_error_("setsockopt(SO_SNDTIMEO) failed", last_error);
+        }
+
         // set TCP_NODELAY
         int enable_flag = 1;
         ::setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&enable_flag),
                      sizeof(enable_flag));
+    }
+
+    bool is_connected() const { return socket_ != INVALID_SOCKET; }
+
+    void close() {
+        if (is_connected()) {
+            ::closesocket(socket_);
+            socket_ = INVALID_SOCKET;
+        }
+    }
+
+    SOCKET fd() const { return socket_; }
+
+    ~tcp_client() {
+        close();
+        ::WSACleanup();
     }
 
     // Send exactly n_bytes of the given data.
@@ -115,21 +128,23 @@ public:
         size_t bytes_sent = 0;
         while (bytes_sent < n_bytes) {
             const int send_flags = 0;
-            auto write_result =
-                ::send(socket_, data + bytes_sent, (int)(n_bytes - bytes_sent), send_flags);
+            auto write_result = ::send(socket_, data + bytes_sent,
+                                       static_cast<int>(n_bytes - bytes_sent), send_flags);
             if (write_result == SOCKET_ERROR) {
                 int last_error = ::WSAGetLastError();
                 close();
+                if (last_error == WSAETIMEDOUT) {
+                    throw_winsock_error_("Connection timed out", last_error);
+                }
                 throw_winsock_error_("send failed", last_error);
             }
-
-            if (write_result == 0)  // (probably should not happen but in any case..)
-            {
+            if (write_result == 0) {  // (probably should not happen but in any case..)
                 break;
             }
             bytes_sent += static_cast<size_t>(write_result);
         }
     }
 };
+
 }  // namespace details
 }  // namespace spdlog

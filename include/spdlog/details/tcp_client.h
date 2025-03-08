@@ -40,9 +40,9 @@ public:
     ~tcp_client() { close(); }
 
     // try to connect or throw on failure
-    void connect(const std::string &host, int port) {
+    void connect(const std::string &host, int port, int timeout_sec) {
         close();
-        struct addrinfo hints {};
+        struct addrinfo hints{};
         memset(&hints, 0, sizeof(struct addrinfo));
         hints.ai_family = AF_UNSPEC;      // To work with IPv4, IPv6, and so on
         hints.ai_socktype = SOCK_STREAM;  // TCP
@@ -56,7 +56,6 @@ public:
             throw_spdlog_ex(fmt_lib::format("::getaddrinfo failed: {}", gai_strerror(rv)));
         }
 
-        // Try each address until we successfully connect(2).
         int last_errno = 0;
         for (auto *rp = addrinfo_result; rp != nullptr; rp = rp->ai_next) {
 #if defined(SOCK_CLOEXEC)
@@ -69,10 +68,19 @@ public:
                 last_errno = errno;
                 continue;
             }
+            struct timeval timeout;
+            timeout.tv_sec = timeout_sec;
+            timeout.tv_usec = 0;
+            ::setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char *>(&timeout),
+                         sizeof(timeout));
+            ::setsockopt(socket_, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char *>(&timeout),
+                         sizeof(timeout));
+
             rv = ::connect(socket_, rp->ai_addr, rp->ai_addrlen);
             if (rv == 0) {
                 break;
             }
+            std::cout << "HERE\n";
             last_errno = errno;
             ::close(socket_);
             socket_ = -1;
@@ -111,7 +119,11 @@ public:
             auto write_result =
                 ::send(socket_, data + bytes_sent, n_bytes - bytes_sent, send_flags);
             if (write_result < 0) {
+                int err = errno;
                 close();
+                if (err == ETIMEDOUT) {
+                    throw_spdlog_ex("Connection timed out", ETIMEDOUT);
+                }
                 throw_spdlog_ex("write(2) failed", errno);
             }
 

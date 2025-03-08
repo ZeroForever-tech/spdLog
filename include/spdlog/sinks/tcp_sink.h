@@ -31,11 +31,13 @@ namespace sinks {
 struct tcp_sink_config {
     std::string server_host;
     int server_port;
+    int timeout_sec;
     bool lazy_connect = false;  // if true connect on first log call instead of on construction
 
-    tcp_sink_config(std::string host, int port)
+    tcp_sink_config(std::string host, int port, int timeout_sec)
         : server_host{std::move(host)},
-          server_port{port} {}
+          server_port{port},
+          timeout_sec(timeout_sec) {}
 };
 
 template <typename Mutex>
@@ -47,19 +49,20 @@ public:
     explicit tcp_sink(tcp_sink_config sink_config)
         : config_{std::move(sink_config)} {
         if (!config_.lazy_connect) {
-            this->client_.connect(config_.server_host, config_.server_port);
+            this->client_.connect(config_.server_host, config_.server_port, config_.timeout_sec);
         }
     }
 
     ~tcp_sink() override = default;
 
 protected:
-    void sink_it_(const spdlog::details::log_msg &msg) override {
+    void sink_it_(const spdlog::details::log_msg& msg) override {
         spdlog::memory_buf_t formatted;
         spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
         if (!client_.is_connected()) {
-            client_.connect(config_.server_host, config_.server_port);
+            client_.connect(config_.server_host, config_.server_port, config_.timeout_sec);
         }
+
         client_.send(formatted.data(), formatted.size());
     }
 

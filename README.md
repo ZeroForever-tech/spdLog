@@ -41,7 +41,7 @@ see example [CMakeLists.txt](https://github.com/gabime/spdlog/blob/v1.x/example/
 * conan: `conan install --requires=spdlog/[*]`
 * conda: `conda install -c conda-forge spdlog`
 * build2: ```depends: spdlog ^1.8.2```
-
+* SPM: add `https://github.com/gabime/spdlog.git` as package dependency
 
 ## Features
 * Very fast (see [benchmarks](#benchmarks) below).

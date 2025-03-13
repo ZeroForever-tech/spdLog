@@ -42,7 +42,6 @@ class tcp_client {
     }
 
 public:
-    // Added timeout_ms parameter (in milliseconds)
     void connect(const std::string &host, int port, int timeout_sec) {
         if (is_connected()) {
             close();

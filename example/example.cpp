@@ -378,15 +378,8 @@ void replace_default_logger_example() {
     spdlog::debug("This message should not be displayed!");
     spdlog::set_level(spdlog::level::trace);
     spdlog::debug("This message should be displayed..");
-
     spdlog::set_default_logger(old_logger);
 }
-
-// Mapped Diagnostic Context (MDC) is a map that stores key-value pairs (string values) in thread
-// local storage. Each thread maintains its own MDC, which loggers use to append diagnostic
-// information to log outputs. Note: it is not supported in asynchronous mode due to its reliance on
-// thread-local storage.
-
 #ifndef SPDLOG_NO_TLS
     #include "spdlog/mdc.h"
 void mdc_example() {

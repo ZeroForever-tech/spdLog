@@ -90,7 +90,7 @@ public:
         }
 
         // set TCP_NODELAY
-        int enable_flag = 1;
+        int enable_flag = 1;    
         ::setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&enable_flag),
                      sizeof(enable_flag));
 

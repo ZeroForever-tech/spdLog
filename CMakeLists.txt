@@ -2,7 +2,7 @@
 # Copyright(c) 2019-present by spdlog authors.
 # Distributed under the MIT License (http://opensource.org/licenses/MIT)
 # ---------------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.23)
 include(cmake/utils.cmake)
 include(cmake/ide.cmake)
 spdlog_extract_version()

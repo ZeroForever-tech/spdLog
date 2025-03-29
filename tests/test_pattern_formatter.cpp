@@ -21,9 +21,9 @@ static std::string log_to_str(const std::string &msg, const Args &...args) {
     return oss.str();
 }
 
-// log to str and return it
+// log to str and return it with time
 template <typename... Args>
-static std::string log_to_str(spdlog::log_clock::time_point log_time, const std::string &msg, const Args &...args) {
+static std::string log_to_str_with_time(spdlog::log_clock::time_point log_time, const std::string &msg, const Args &...args) {
     std::ostringstream oss;
     auto oss_sink = std::make_shared<spdlog::sinks::ostream_sink_mt>(oss);
     spdlog::logger oss_logger("pattern_tester", oss_sink);
@@ -80,7 +80,7 @@ TEST_CASE("GMT offset ", "[pattern_formatter]") {
     const auto now = std::chrono::system_clock::now();
     const auto yesterday = now - 24h;
 
-    REQUIRE(log_to_str(yesterday, "Some message", "%z", spdlog::pattern_time_type::utc) ==
+    REQUIRE(log_to_str_with_time(yesterday, "Some message", "%z", spdlog::pattern_time_type::utc, "\n") ==
             "+00:00\n");
 }
 

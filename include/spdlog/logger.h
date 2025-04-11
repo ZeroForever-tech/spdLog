@@ -200,7 +200,6 @@ private:
                 }
             }
         }
-
         if (should_flush(msg)) {
             flush_();
         }

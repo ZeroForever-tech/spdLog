@@ -59,6 +59,9 @@ protected:
         bool filtered = filter_(msg);
         if (!filtered) {
             skip_counter_ += 1;
+            if (use_message_level_for_notification_) {
+                log_level_ = msg.level;
+            }
             return;
         }
 
@@ -68,8 +71,7 @@ protected:
             auto msg_size = ::snprintf(buf, sizeof(buf), "Skipped %u duplicate messages..",
                                        static_cast<unsigned>(skip_counter_));
             if (msg_size > 0 && static_cast<size_t>(msg_size) < sizeof(buf)) {
-                details::log_msg skipped_msg{msg.source, msg.logger_name,
-                                             use_message_level_for_notification_ ? msg.level : log_level_,
+                details::log_msg skipped_msg{msg.source, msg.logger_name, log_level_,
                                              string_view_t{buf, static_cast<size_t>(msg_size)}};
                 dist_sink<Mutex>::sink_it_(skipped_msg);
             }

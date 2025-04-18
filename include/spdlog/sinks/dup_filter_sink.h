@@ -41,9 +41,11 @@ class dup_filter_sink : public dist_sink<Mutex> {
 public:
     template <class Rep, class Period>
     explicit dup_filter_sink(std::chrono::duration<Rep, Period> max_skip_duration,
-                             level::level_enum notification_level = level::info)
+                             level::level_enum notification_level = level::info,
+                             bool use_message_level_for_notification = false)
         : max_skip_duration_{max_skip_duration},
-          log_level_{notification_level} {}
+          log_level_{notification_level},
+          use_message_level_for_notification_(use_message_level_for_notification) {}
 
 protected:
     std::chrono::microseconds max_skip_duration_;
@@ -51,6 +53,7 @@ protected:
     std::string last_msg_payload_;
     size_t skip_counter_ = 0;
     level::level_enum log_level_;
+    bool use_message_level_for_notification_;
 
     void sink_it_(const details::log_msg &msg) override {
         bool filtered = filter_(msg);
@@ -65,7 +68,8 @@ protected:
             auto msg_size = ::snprintf(buf, sizeof(buf), "Skipped %u duplicate messages..",
                                        static_cast<unsigned>(skip_counter_));
             if (msg_size > 0 && static_cast<size_t>(msg_size) < sizeof(buf)) {
-                details::log_msg skipped_msg{msg.source, msg.logger_name, log_level_,
+                details::log_msg skipped_msg{msg.source, msg.logger_name,
+                                             use_message_level_for_notification_ ? msg.level : log_level_,
                                              string_view_t{buf, static_cast<size_t>(msg_size)}};
                 dist_sink<Mutex>::sink_it_(skipped_msg);
             }

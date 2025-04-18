@@ -45,7 +45,7 @@ public:
                              bool use_message_level_for_notification = false)
         : max_skip_duration_{max_skip_duration},
           log_level_{notification_level},
-          use_message_level_for_notification_(use_message_level_for_notification) {}
+          use_message_level_for_notification_{use_message_level_for_notification} {}
 
 protected:
     std::chrono::microseconds max_skip_duration_;

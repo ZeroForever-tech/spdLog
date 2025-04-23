@@ -304,7 +304,7 @@ endif ()
 # ---------------------------------------------------------------------------------------
 if (SPDLOG_NO_EXCEPTIONS)
     if (NOT SPDLOG_FMT_EXTERNAL AND NOT SPDLOG_FMT_EXTERNAL_HO)
-        target_compile_definitions(spdlog PUBLIC FMT_EXCEPTIONS=0)
+        target_compile_definitions(spdlog PUBLIC FMT_USE_EXCEPTIONS=0)
     endif ()
     if (NOT MSVC)
         target_compile_options(spdlog PRIVATE -fno-exceptions)

@@ -310,6 +310,7 @@ if (SPDLOG_NO_EXCEPTIONS)
         target_compile_options(spdlog PRIVATE -fno-exceptions)
     else ()
         target_compile_options(spdlog PRIVATE /EHs-c-)
+        target_compile_definitions(spdlog PRIVATE _HAS_EXCEPTIONS=0)
     endif ()
 endif ()
 # ---------------------------------------------------------------------------------------

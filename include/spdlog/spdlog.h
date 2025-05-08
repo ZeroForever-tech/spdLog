@@ -91,7 +91,12 @@ inline void flush_every(std::chrono::duration<Rep, Period> interval) {
 SPDLOG_API void set_error_handler(void (*handler)(const std::string &msg));
 
 // Register the given logger with the given name
+// Will throw if a logger with the same name already exists.
 SPDLOG_API void register_logger(std::shared_ptr<logger> logger);
+
+// Register the given logger with the given name
+// Will replace any the existing logger with the same name if exists.
+SPDLOG_API void register_or_replace(std::shared_ptr<logger> logger);
 
 // Apply a user-defined function on all registered loggers
 // Example:

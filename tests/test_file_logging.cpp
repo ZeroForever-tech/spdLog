@@ -169,7 +169,7 @@ TEST_CASE("rotating_file_logger5", "[rotating_logger]") {
     logger.reset();  // force flush and close the file
 
     // validate that the files were rotated correctly with the new max size and max files
-    for (int i = 0; i <= max_files; i++) {
+    for (size_t i = 0; i <= max_files; i++) {
         // calc filenames
         // e.g. rotating_log, rotating_log.0 rotating_log.1, rotating_log.2, etc.
         std::ostringstream oss;

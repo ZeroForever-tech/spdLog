@@ -163,8 +163,8 @@ TEST_CASE("rotating_file_logger5", "[rotating_logger]") {
     const auto message = std::string(200, 'x');
     assert(message.size() < max_size);
     const auto n_messages = max_files * max_size / message.size();
-    for (int i = 0; i < n_messages; ++i) {
-        logger->info(message, i);
+    for (size_t i = 0; i < n_messages; ++i) {
+        logger->info(message);
     }
     logger.reset();  // force flush and close the file
 

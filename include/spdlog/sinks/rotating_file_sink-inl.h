@@ -99,7 +99,7 @@ SPDLOG_INLINE void rotating_file_sink<Mutex>::set_max_files(std::size_t max_file
 }
 
 template <typename Mutex>
-std::size_t rotating_file_sink<Mutex>::get_max_files(){
+std::size_t rotating_file_sink<Mutex>::get_max_files() {
     std::lock_guard<Mutex> lock(base_sink<Mutex>::mutex_);
     return max_files_;
 }

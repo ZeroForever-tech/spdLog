@@ -166,7 +166,7 @@ TEST_CASE("rotating_file_logger5", "[rotating_logger]") {
     for (int i = 0; i < n_messages; ++i) {
         logger->info(message, i);
     }
-    logger.reset(); // force flush and close the file
+    logger.reset();  // force flush and close the file
 
     // validate that the files were rotated correctly with the new max size and max files
     for (int i = 0; i <= max_files; i++) {

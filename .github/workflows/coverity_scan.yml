@@ -6,12 +6,6 @@ permissions:
   contents: read
 
 jobs:
-  build:
-  # your existing build matrix (unchanged)...
-
-  build_osx:
-  # your existing macOS build job (unchanged)...
-
   coverity_scan:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

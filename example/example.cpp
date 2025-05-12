@@ -379,7 +379,7 @@ void replace_default_logger_example() {
     spdlog::set_level(spdlog::level::trace);
     spdlog::debug("This message should be displayed..");
 
-    spdlog::set_default_logger(old_logger);
+    spdlog::set_default_logger(std::move(old_logger));
 }
 
 // Mapped Diagnostic Context (MDC) is a map that stores key-value pairs (string values) in thread

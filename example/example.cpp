@@ -371,14 +371,12 @@ void replace_default_logger_example() {
     // store the old logger so we don't break other examples.
     auto old_logger = spdlog::default_logger();
 
-    auto new_logger =
-        spdlog::basic_logger_mt("new_default_logger", "logs/new-default-log.txt", true);
-    spdlog::set_default_logger(new_logger);
+    auto new_logger = spdlog::basic_logger_mt("new_default_logger", "logs/somelog.txt", true);
+    spdlog::set_default_logger(std::move(new_logger));
     spdlog::set_level(spdlog::level::info);
     spdlog::debug("This message should not be displayed!");
     spdlog::set_level(spdlog::level::trace);
     spdlog::debug("This message should be displayed..");
-
     spdlog::set_default_logger(std::move(old_logger));
 }
 

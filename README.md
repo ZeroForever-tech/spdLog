@@ -525,4 +525,6 @@ Documentation can be found in the [wiki](https://github.com/gabime/spdlog/wiki) 
 ---
 
 ### Powered by
-[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://jb.gg/OpenSource)
+<a href="https://jb.gg/OpenSource">
+  <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg" alt="JetBrains logo" width="200">
+</a>

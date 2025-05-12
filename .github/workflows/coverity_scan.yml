@@ -1,4 +1,4 @@
-name: linux
+name: coverity-linux
 
 on: [push, pull_request]
 

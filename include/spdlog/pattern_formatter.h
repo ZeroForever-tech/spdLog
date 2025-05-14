@@ -23,6 +23,35 @@
 namespace spdlog {
 namespace details {
 
+template <size_t BytesCount>
+struct literal {
+    using char_type = char;
+
+    consteval literal(const char_type (&str)[BytesCount]) {
+        std::copy(str, str + BytesCount, data);
+    }
+
+    consteval auto to_string_view() const { return std::string_view{data}; }
+    consteval auto size() const { return BytesCount - 1; }
+
+    template <size_t Offset, size_t Count = std::string::npos>
+    consteval auto substr() const {
+        if constexpr (Count == std::string::npos) {
+            static_assert((BytesCount - Offset) != 0);
+            char_type new_data[BytesCount - Offset];
+            std::copy(data + Offset, data + BytesCount, new_data);
+            return literal<BytesCount - Offset>{new_data};
+        } else {
+            char_type new_data[Count + 1];
+            std::copy(data + Offset, data + Offset + Count, new_data);
+            new_data[Count] = '\0';
+            return literal<Count + 1>{new_data};
+        }
+    }
+
+    char_type data[BytesCount];
+};
+
 // padding information.
 struct padding_info {
     enum class pad_side { left, right, center };
@@ -43,7 +72,7 @@ struct padding_info {
 
 class SPDLOG_API flag_formatter {
 public:
-    explicit flag_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit flag_formatter(padding_info padinfo)
         : padinfo_(padinfo) {}
     flag_formatter() = default;
     virtual ~flag_formatter() = default;
@@ -53,6 +82,24 @@ public:
 
 protected:
     padding_info padinfo_;
+};
+
+// Some formatters cannot be initialized at compile-time (in consteval context), so they need to be
+// delayed to runtime to be constructed.
+template <class Formatter, class... CtorArgs>
+class delay_init_formatter {
+public:
+    SPDLOG_CONSTEXPR_FUNC explicit delay_init_formatter(CtorArgs &&...args)
+        : ctor_args_(std::make_tuple(std::forward<CtorArgs>(args)...)) {}
+
+    Formatter construct() const {
+        return std::apply(
+            [](auto &&...args) { return Formatter(std::forward<decltype(args)>(args)...); },
+            ctor_args_);
+    }
+
+private:
+    std::tuple<CtorArgs...> ctor_args_;
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -123,7 +170,7 @@ struct null_scoped_padder {
 template <typename ScopedPadder>
 class name_formatter final : public flag_formatter {
 public:
-    explicit name_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit name_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -136,7 +183,7 @@ public:
 template <typename ScopedPadder>
 class level_formatter final : public flag_formatter {
 public:
-    explicit level_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit level_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -150,7 +197,7 @@ public:
 template <typename ScopedPadder>
 class short_level_formatter final : public flag_formatter {
 public:
-    explicit short_level_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit short_level_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -174,7 +221,7 @@ static std::array<const char *, 7> days{{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri
 template <typename ScopedPadder>
 class a_formatter final : public flag_formatter {
 public:
-    explicit a_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit a_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -191,7 +238,7 @@ static std::array<const char *, 7> full_days{
 template <typename ScopedPadder>
 class A_formatter : public flag_formatter {
 public:
-    explicit A_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit A_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -208,7 +255,7 @@ static const std::array<const char *, 12> months{
 template <typename ScopedPadder>
 class b_formatter final : public flag_formatter {
 public:
-    explicit b_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit b_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -226,7 +273,7 @@ static const std::array<const char *, 12> full_months{{"January", "February", "M
 template <typename ScopedPadder>
 class B_formatter final : public flag_formatter {
 public:
-    explicit B_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit B_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -240,7 +287,7 @@ public:
 template <typename ScopedPadder>
 class c_formatter final : public flag_formatter {
 public:
-    explicit c_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit c_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -269,7 +316,7 @@ public:
 template <typename ScopedPadder>
 class C_formatter final : public flag_formatter {
 public:
-    explicit C_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit C_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -283,7 +330,7 @@ public:
 template <typename ScopedPadder>
 class D_formatter final : public flag_formatter {
 public:
-    explicit D_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit D_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -302,7 +349,7 @@ public:
 template <typename ScopedPadder>
 class Y_formatter final : public flag_formatter {
 public:
-    explicit Y_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit Y_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -316,7 +363,7 @@ public:
 template <typename ScopedPadder>
 class m_formatter final : public flag_formatter {
 public:
-    explicit m_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit m_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -330,7 +377,7 @@ public:
 template <typename ScopedPadder>
 class d_formatter final : public flag_formatter {
 public:
-    explicit d_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit d_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -344,7 +391,7 @@ public:
 template <typename ScopedPadder>
 class H_formatter final : public flag_formatter {
 public:
-    explicit H_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit H_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -358,7 +405,7 @@ public:
 template <typename ScopedPadder>
 class I_formatter final : public flag_formatter {
 public:
-    explicit I_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit I_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -372,7 +419,7 @@ public:
 template <typename ScopedPadder>
 class M_formatter final : public flag_formatter {
 public:
-    explicit M_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit M_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -386,7 +433,7 @@ public:
 template <typename ScopedPadder>
 class S_formatter final : public flag_formatter {
 public:
-    explicit S_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit S_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -400,7 +447,7 @@ public:
 template <typename ScopedPadder>
 class e_formatter final : public flag_formatter {
 public:
-    explicit e_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit e_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -415,7 +462,7 @@ public:
 template <typename ScopedPadder>
 class f_formatter final : public flag_formatter {
 public:
-    explicit f_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit f_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -431,7 +478,7 @@ public:
 template <typename ScopedPadder>
 class F_formatter final : public flag_formatter {
 public:
-    explicit F_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit F_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -446,7 +493,7 @@ public:
 template <typename ScopedPadder>
 class E_formatter final : public flag_formatter {
 public:
-    explicit E_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit E_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -462,7 +509,7 @@ public:
 template <typename ScopedPadder>
 class p_formatter final : public flag_formatter {
 public:
-    explicit p_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit p_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -476,7 +523,7 @@ public:
 template <typename ScopedPadder>
 class r_formatter final : public flag_formatter {
 public:
-    explicit r_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit r_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -497,7 +544,7 @@ public:
 template <typename ScopedPadder>
 class R_formatter final : public flag_formatter {
 public:
-    explicit R_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit R_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -514,7 +561,7 @@ public:
 template <typename ScopedPadder>
 class T_formatter final : public flag_formatter {
 public:
-    explicit T_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit T_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -533,12 +580,16 @@ public:
 template <typename ScopedPadder>
 class z_formatter final : public flag_formatter {
 public:
-    explicit z_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit z_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     z_formatter() = default;
-    z_formatter(const z_formatter &) = delete;
-    z_formatter &operator=(const z_formatter &) = delete;
+    // TODO: In the current static pattern implementation, we seem to be referencing copy ctors.
+    // Either we try to avoid copying in the static pattern implementation, or we allow this
+    // formatter to copy (is that no problem?). Let's allow copies for now and fix it later.
+    //
+    // z_formatter(const z_formatter &) = delete;
+    // z_formatter &operator=(const z_formatter &) = delete;
 
     void format(const details::log_msg &msg, const std::tm &tm_time, memory_buf_t &dest) override {
         const size_t field_size = 6;
@@ -576,7 +627,7 @@ private:
 template <typename ScopedPadder>
 class t_formatter final : public flag_formatter {
 public:
-    explicit t_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit t_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -590,7 +641,7 @@ public:
 template <typename ScopedPadder>
 class pid_formatter final : public flag_formatter {
 public:
-    explicit pid_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit pid_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &, memory_buf_t &dest) override {
@@ -604,7 +655,7 @@ public:
 template <typename ScopedPadder>
 class v_formatter final : public flag_formatter {
 public:
-    explicit v_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit v_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -615,7 +666,7 @@ public:
 
 class ch_formatter final : public flag_formatter {
 public:
-    explicit ch_formatter(char ch)
+    SPDLOG_CONSTEXPR_FUNC explicit ch_formatter(char ch)
         : ch_(ch) {}
 
     void format(const details::log_msg &, const std::tm &, memory_buf_t &dest) override {
@@ -640,10 +691,22 @@ private:
     std::string str_;
 };
 
+template <literal Str>
+class static_aggregate_formatter final : public flag_formatter {
+    static_assert(Str.data[Str.size()] == '\0');
+
+public:
+    static_aggregate_formatter() = default;
+
+    void format(const details::log_msg &, const std::tm &, memory_buf_t &dest) override {
+        fmt_helper::append_string_view(Str.to_string_view(), dest);
+    }
+};
+
 // mark the color range. expect it to be in the form of "%^colored text%$"
 class color_start_formatter final : public flag_formatter {
 public:
-    explicit color_start_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit color_start_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -653,7 +716,7 @@ public:
 
 class color_stop_formatter final : public flag_formatter {
 public:
-    explicit color_stop_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit color_stop_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -665,7 +728,7 @@ public:
 template <typename ScopedPadder>
 class source_location_formatter final : public flag_formatter {
 public:
-    explicit source_location_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit source_location_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -694,7 +757,7 @@ public:
 template <typename ScopedPadder>
 class source_filename_formatter final : public flag_formatter {
 public:
-    explicit source_filename_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit source_filename_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -712,7 +775,7 @@ public:
 template <typename ScopedPadder>
 class short_filename_formatter final : public flag_formatter {
 public:
-    explicit short_filename_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit short_filename_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
 #ifdef _MSC_VER
@@ -753,7 +816,7 @@ public:
 template <typename ScopedPadder>
 class source_linenum_formatter final : public flag_formatter {
 public:
-    explicit source_linenum_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit source_linenum_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -772,7 +835,7 @@ public:
 template <typename ScopedPadder>
 class source_funcname_formatter final : public flag_formatter {
 public:
-    explicit source_funcname_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit source_funcname_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &, memory_buf_t &dest) override {
@@ -793,7 +856,7 @@ class elapsed_formatter final : public flag_formatter {
 public:
     using DurationUnits = Units;
 
-    explicit elapsed_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit elapsed_formatter(padding_info padinfo)
         : flag_formatter(padinfo),
           last_message_time_(log_clock::now()) {}
 
@@ -817,7 +880,7 @@ private:
 template <typename ScopedPadder>
 class mdc_formatter : public flag_formatter {
 public:
-    explicit mdc_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit mdc_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &, const std::tm &, memory_buf_t &dest) override {
@@ -858,7 +921,7 @@ public:
 // pattern: [%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%s:%#] %v
 class full_formatter final : public flag_formatter {
 public:
-    explicit full_formatter(padding_info padinfo)
+    SPDLOG_CONSTEXPR_FUNC explicit full_formatter(padding_info padinfo)
         : flag_formatter(padinfo) {}
 
     void format(const details::log_msg &msg, const std::tm &tm_time, memory_buf_t &dest) override {
@@ -1013,7 +1076,199 @@ private:
 
     void compile_pattern_(const std::string &pattern);
 };
+
+namespace details {
+
+consteval auto tuple_push(auto &&tuple, auto &&element) {
+    return std::tuple_cat(std::move(tuple), std::make_tuple(std::move(element)));
+}
+
+template <typename Padder, char Flag>
+consteval auto parse_flag(padding_info padding = {} /* TODO */) {
+    // TODO: need_localtime_
+
+    if constexpr (Flag == '+') {  // default formatter
+        return delay_init_formatter<full_formatter, padding_info>{std::move(padding)};
+    } else if constexpr (Flag == 'n') {  // logger name
+        return name_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'l') {  // level
+        return level_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'L') {  // short level
+        return short_level_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 't') {  // thread id
+        return t_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'v') {  // the message text
+        return v_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'a') {  // weekday
+        return a_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'A') {  // short weekday
+        return A_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'b' || Flag == 'h') {  // month
+        return b_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'B') {  // short month
+        return B_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'c') {  // datetime
+        return c_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'C') {  // year 2 digits
+        return C_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'Y') {  // year 4 digits
+        return Y_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'D' || Flag == 'x') {  // datetime MM/DD/YY
+        return D_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'm') {  // month 1-12
+        return m_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'd') {  // day of month 1-31
+        return d_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'H') {  // hours 24
+        return H_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'I') {  // hours 12
+        return I_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'M') {  // minutes
+        return M_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'S') {  // seconds
+        return S_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'e') {  // milliseconds
+        return e_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'f') {  // microseconds
+        return f_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'F') {  // nanoseconds
+        return F_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'E') {  // seconds since epoch
+        return E_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'p') {  // am/pm
+        return p_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'r') {  // 12 hour clock 02:55:02 pm
+        return r_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'R') {  // 24-hour HH:MM time
+        return R_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'T' || Flag == 'X') {  // ISO 8601 time format (HH:MM:SS)
+        return T_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'z') {  // timezone
+        return z_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'P') {  // pid
+        return pid_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == '^') {  // color range start
+        return color_start_formatter{std::move(padding)};
+    } else if constexpr (Flag == '$') {  // color range end
+        return color_stop_formatter{std::move(padding)};
+    } else if constexpr (Flag == '@') {  // source location (filename:filenumber)
+        return source_location_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 's') {  // short source filename - without directory name
+        return short_filename_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == 'g') {  // full source filename
+        return source_filename_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == '#') {  // source line number
+        return source_linenum_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == '!') {  // source funcname
+        return source_funcname_formatter<Padder>{std::move(padding)};
+    } else if constexpr (Flag == '%') {  // % char
+        return ch_formatter{'%'};
+    } else if constexpr (Flag == 'u') {  // elapsed time since last log message in nanos
+        return delay_init_formatter<elapsed_formatter<Padder, std::chrono::nanoseconds>,
+                                    padding_info>{std::move(padding)};
+    } else if constexpr (Flag == 'i') {  // elapsed time since last log message in micros
+        return delay_init_formatter<elapsed_formatter<Padder, std::chrono::microseconds>,
+                                    padding_info>{std::move(padding)};
+    } else if constexpr (Flag == 'o') {  // elapsed time since last log message in millis
+        return delay_init_formatter<elapsed_formatter<Padder, std::chrono::milliseconds>,
+                                    padding_info>{std::move(padding)};
+    } else if constexpr (Flag == 'O') {  // elapsed time since last log message in seconds
+        return delay_init_formatter<elapsed_formatter<Padder, std::chrono::seconds>, padding_info>{
+            std::move(padding)};
+    }
+#ifndef SPDLOG_NO_TLS  // mdc formatter requires TLS support
+    else if constexpr (Flag == '&') {
+        return mdc_formatter<Padder>{std::move(padding)};
+    }
+#endif
+    else {
+        // TODO: Unknown flag appears as is
+        static_assert(false);
+    }
+}
+
+template <literal Tails>
+consteval auto pattern_munch(auto compiled) {
+    constexpr auto view = Tails.to_string_view();
+    if constexpr (view.empty()) {
+        return compiled;
+    } else {
+        if constexpr (view.front() == '%') {
+            if constexpr (view.size() < 2) {
+                return compiled;  // TODO: Check the behavior
+            } else {
+                return pattern_munch<Tails.template substr<2>()>(
+                    tuple_push(compiled, parse_flag<null_scoped_padder, view[1]>()));
+            }
+        } else {
+            constexpr auto next_flag = view.find('%');
+            if constexpr (next_flag == std::string_view::npos) {
+                return tuple_push(compiled, static_aggregate_formatter<Tails>{});
+            } else {
+                return pattern_munch<Tails.template substr<next_flag>()>(tuple_push(
+                    compiled, static_aggregate_formatter<Tails.template substr<0, next_flag>()>{}));
+            }
+        }
+    }
+}
+
+template <literal Input>
+consteval auto compile_static_pattern() {
+    return pattern_munch<Input>(std::make_tuple());
+}
+
+template <class Formatter, class... CtorArgs>
+inline auto init_delayed_formatter(delay_init_formatter<Formatter, CtorArgs...> formatter) {
+    return formatter.construct();
+}
+
+inline auto init_delayed_formatter(auto formatter) { return formatter; }
+
+template <class... Flags, std::size_t... Is>
+inline auto init_delayed_formatters_impl(std::tuple<Flags...> flags, std::index_sequence<Is...>) {
+    return std::make_tuple(init_delayed_formatter(std::get<Is>(flags))...);
+}
+
+template <class... Flags>
+inline auto init_delayed_formatters(std::tuple<Flags...> flags) {
+    // TODO: Wrap them into `static_pattern_formatter`
+    return init_delayed_formatters_impl(std::move(flags),
+                                        std::make_index_sequence<sizeof...(Flags)>{});
+}
+
+template <class... Flags, std::size_t... Is>
+inline auto unify_to_vector_impl(std::tuple<Flags...> flags, std::index_sequence<Is...>) {
+    std::vector<std::unique_ptr<flag_formatter>> formatters;
+    formatters.reserve(sizeof...(Flags));
+    (formatters.emplace_back(make_unique<Flags>(std::move(std::get<Is>(flags)))), ...);
+    return formatters;
+}
+
+// `std::tuple<A, B, C> -> std::vector<std::unique_ptr<flag_formatter>>`
+template <class... Flags>
+inline auto unify_to_vector(std::tuple<Flags...> flags) {
+    return unify_to_vector_impl(std::move(flags), std::make_index_sequence<sizeof...(Flags)>{});
+}
+// TODO: Wrap them into `static_pattern_formatter`
+
+// Post-process at runtime
+template <class Tuple>
+inline auto runtime_wrap_flags(Tuple flags) {
+    return unify_to_vector(init_delayed_formatters(std::move(flags)));
+}
+
+}  // namespace details
+
+class SPDLOG_API static_pattern_formatter final : public formatter {};
 }  // namespace spdlog
+
+namespace spdlog_literals {
+template <spdlog::details::literal Input>
+[[nodiscard]] inline decltype(auto) operator""_pat() {
+    constexpr auto compiled = spdlog::details::compile_static_pattern<Input>();
+    return spdlog::details::runtime_wrap_flags(compiled);
+}
+}  // namespace spdlog_literals
 
 #ifdef SPDLOG_HEADER_ONLY
     #include "pattern_formatter-inl.h"

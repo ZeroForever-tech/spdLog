@@ -15,3 +15,8 @@ with open(config_h, 'r') as fp:
             data[m.group(1)] = int(m.group(2))
 
 print(f"{data['MAJOR']}.{data['MINOR']}.{data['PATCH']}")
+if not all(data.values()):
+    raise ValueError(
+        f"Could not find all version components in {config_h}. Found: {data}"
+    )
+

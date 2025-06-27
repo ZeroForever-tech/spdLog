@@ -72,7 +72,7 @@
 #  endif
 #endif  // FMT_MODULE
 
-#if (defined(__GNUC__) && __GNUC__ < 5) || defined(_MSC_VER)
+#if (defined(__GNUC__) && __GNUC__ < 5)
 #  define OPERATOR_LITERAL(suffix) operator"" suffix
 #else
 #  define OPERATOR_LITERAL(suffix) operator""suffix

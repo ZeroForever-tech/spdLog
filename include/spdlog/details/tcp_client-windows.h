@@ -59,11 +59,11 @@ public:
     SOCKET fd() const { return socket_; }
 
     // try to connect or throw on failure
-    void connect(const std::string &host, int port) {
+    void connect(const std::string &host, int port, int timeout_ms) {
         if (is_connected()) {
             close();
         }
-        struct addrinfo hints {};
+        struct addrinfo hints{};
         ZeroMemory(&hints, sizeof(hints));
 
         hints.ai_family = AF_UNSPEC;      // To work with IPv4, IPv6, and so on
@@ -90,18 +90,59 @@ public:
                 WSACleanup();
                 continue;
             }
-            if (::connect(socket_, rp->ai_addr, (int)rp->ai_addrlen) == 0) {
-                break;
-            } else {
-                last_error = ::WSAGetLastError();
-                close();
+            // set non-blocking if timeout specified
+            u_long mode = (timeout_ms > 0) ? 1UL : 0UL;
+            ::ioctlsocket(socket_, FIONBIO, &mode);
+
+            rv = ::connect(socket_, rp->ai_addr, (int)rp->ai_addrlen);
+            if (rv == SOCKET_ERROR) {
+                last_error = WSAGetLastError();
+                if (timeout_ms > 0 && last_error == WSAEWOULDBLOCK) {
+                    fd_set wfds;
+                    FD_ZERO(&wfds);
+                    FD_SET(socket_, &wfds);
+                    timeval tv;
+                    tv.tv_sec = timeout_ms / 1000;
+                    tv.tv_usec = (timeout_ms % 1000) * 1000;
+                    rv = ::select(0, nullptr, &wfds, nullptr, &tv);
+                    if (rv > 0) {
+                        int so_error = 0;
+                        int len = sizeof(so_error);
+                        ::getsockopt(socket_, SOL_SOCKET, SO_ERROR, (char *)&so_error, &len);
+                        if (so_error == 0)
+                            rv = 0;
+                        else {
+                            last_error = so_error;
+                            rv = SOCKET_ERROR;
+                        }
+                    } else {
+                        last_error = (rv == 0 ? WSAETIMEDOUT : WSAGetLastError());
+                        rv = SOCKET_ERROR;
+                    }
+                }
             }
+
+            // restore blocking mode
+            mode = 0UL;
+            ::ioctlsocket(socket_, FIONBIO, &mode);
+
+            if (rv == 0) {
+                last_error = 0;
+                break;
+            }
+
+            ::closesocket(socket_);
+            socket_ = INVALID_SOCKET;
         }
         ::freeaddrinfo(addrinfo_result);
         if (socket_ == INVALID_SOCKET) {
             WSACleanup();
             throw_winsock_error_("connect failed", last_error);
         }
+
+        DWORD tv = static_cast<DWORD>(timeout_ms);
+        ::setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
+        ::setsockopt(socket_, SOL_SOCKET, SO_SNDTIMEO, (const char *)&tv, sizeof(tv));
 
         // set TCP_NODELAY
         int enable_flag = 1;

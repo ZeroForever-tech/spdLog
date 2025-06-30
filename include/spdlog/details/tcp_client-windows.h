@@ -113,7 +113,7 @@ public:
     }
 
     // try to connect or throw on failure
-    void connect(const std::string &host, int port, int timeout_ms) {
+    void connect(const std::string &host, int port, int timeout_ms = 0) {
         if (is_connected()) {
             close();
         }

@@ -246,8 +246,8 @@ void multi_sink_example()
 ```c++
 
 // Creation of loggers. Registration of loggers.
-// Setting default logger. Setting global level to all registered loggers. 
-void multi_sink_example()
+// Setting a default logger. Setting a global level to all registered loggers. 
+void multi_loggers_example()
 {
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/filesink.txt", true);
     file_sink->set_level(spdlog::level::warning);

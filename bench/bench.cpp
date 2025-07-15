@@ -32,6 +32,16 @@ static const size_t rotating_files = 5;
 static const int max_threads = 1000;
 
 using namespace spdlog::sinks;
+/**
+ * Executes a multi-threaded logging benchmark using various log sinks.
+ *
+ * Logs information related to the benchmarking process and performs logging 
+ * using multi-threaded file sinks, including basic, rotating, and daily file 
+ * sinks, as well as a logger with level-off.
+ *
+ * @param {size_t} threads - The number of threads to use for logging.
+ * @param {int} iters - The number of iterations/messages to log.
+ */
 void bench_threaded_logging(size_t threads, int iters) {
     spdlog::info("**************************************************************");
     spdlog::info(
@@ -55,6 +65,20 @@ void bench_threaded_logging(size_t threads, int iters) {
     bench(iters, empty_logger);
 }
 
+/**
+ * Executes a single-threaded benchmarking test using the given number of iterations.
+ * Various logging sinks are tested for performance during the benchmarking.
+ *
+ * @param {number} iters - The number of iterations for the benchmarking test.
+ *
+ * @example
+ * bench_single_threaded(100000);
+ *
+ * @details
+ * - The function utilizes different types of log sinks such as basic, rotating, and daily file sinks for benchmarking.
+ * - It configures an "off" level logger to test performance without actual logging.
+ * - The results of these tests can provide insights into the performance of different logging strategies under a single-threaded environment.
+ */
 void bench_single_threaded(int iters) {
     spdlog::info("**************************************************************");
     spdlog::info(spdlog::fmt_lib::format(std::locale("en_US.UTF-8"), "Single threaded: {} messages", iters));
@@ -77,6 +101,32 @@ void bench_single_threaded(int iters) {
     bench(iters, empty_logger);
 }
 
+/**
+ * @function main
+ * @description Initializes the global logger with a specific pattern and benchmarks
+ *              logging performance with single-threaded and multi-threaded configurations.
+ *              This function parses command line arguments to customize the number of iterations
+ *              and threads used for the benchmarking.
+ *
+ * @param {number} argc - The number of command line arguments passed to the program.
+ * @param {Array<string>} argv - Array of command line arguments.
+ * 
+ * @returns {number} - Returns EXIT_SUCCESS or EXIT_FAILURE based on whether the benchmarking
+ *                     completes successfully or an error occurs.
+ * 
+ * @throws {Error} Throws an error if the number of threads specified exceeds the maximum allowed.
+ *
+ * @example
+ * // Sample command line invocation
+ * node bench.js 500000 8
+ * // This sets the number of iterations to 500000 and the number of threads to 8.
+ *
+ * @details
+ * - Adjusts the number of iterations based on the first command line argument if provided.
+ * - Adjusts the number of threads based on the second command line argument if provided.
+ * - Logging benchmarks are performed for single-threaded and specified multi-threaded configurations.
+ * - Captures and logs any runtime exceptions using spdlog.
+ */
 int main(int argc, char *argv[]) {
     spdlog::global_logger()->set_pattern("[%^%l%$] %v");
     int iters = 250000;
@@ -103,6 +153,34 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
+/**
+ * Executes a sequence of asynchronous tasks in order, ensuring that each task 
+ * is completed before the next one begins.
+ *
+ * @param {Array<Function>} tasks - An array of functions representing 
+ * asynchronous tasks. Each function should return a Promise.
+ * 
+ * @returns {Promise} - A promise that resolves when all tasks have been 
+ * executed in sequence.
+ * 
+ * @example
+ * const tasks = [
+ *   () => new Promise(resolve => setTimeout(() => resolve('First task done'), 1000)),
+ *   () => new Promise(resolve => setTimeout(() => resolve('Second task done'), 1000)),
+ *   () => new Promise(resolve => setTimeout(() => resolve('Third task done'), 1000))
+ * ];
+ * 
+ * executeTasksInOrder(tasks).then(() => console.log('All tasks completed.'));
+ * 
+ * @details
+ *   - If a task fails (i.e., its Promise is rejected), the function stops 
+ *     executing further tasks and the returned promise is rejected.
+ *   - Execution will proceed sequentially even if some tasks are settled earlier than others, 
+ *     ensuring the defined order of execution.
+ *   - This utility is useful for managing operations that must occur in a strict sequence.
+ *   - It is assumed that each task function returns a valid promise, otherwise, 
+ *     the behavior is undefined.
+ */
 void bench(int howmany, std::shared_ptr<spdlog::logger> log) {
     using std::chrono::duration;
     using std::chrono::duration_cast;
@@ -120,6 +198,23 @@ void bench(int howmany, std::shared_ptr<spdlog::logger> log) {
                                          delta_d, static_cast<size_t>(howmany / delta_d)));
 }
 
+/**
+ * Benchmarks the multi-thread logging performance.
+ *
+ * This function spawns a specified number of threads, each responsible 
+ * for logging a calculated number of messages. Provides performance 
+ * statistics at the end.
+ *
+ * @param {number} howmany - The total number of log messages to be dispatched.
+ * @param {std::shared_ptr<spdlog::logger>} log - Shared pointer to the logger instance where messages will be logged.
+ * @param {number} thread_count - The number of threads to use for logging.
+ * 
+ * @details
+ *   - Log messages are formatted to include the message number.
+ *   - Threads are joined after message dispatch to ensure completion before measuring elapsed time.
+ *   - Elapsed time is calculated using high resolution clock for precision.
+ *   - Performance output is formatted to include the logger's name, elapsed time, and messages per second rate.
+ */
 void bench_mt(int howmany, std::shared_ptr<spdlog::logger> log, size_t thread_count) {
     using std::chrono::duration;
     using std::chrono::duration_cast;

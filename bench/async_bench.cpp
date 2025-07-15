@@ -25,11 +25,41 @@ using spdlog::sinks::async_sink;
 
 void bench_mt(int howmany, std::shared_ptr<spdlog::logger> log, int thread_count);
 
+/**
+ * @brief Counts the number of lines in a given file.
+ * @example
+ * int lineCount = count_lines("path/to/file.txt");
+ * std::cout << lineCount << std::endl; // Expected output: number of lines in the file
+ * 
+ * @param {char*} filename - Path to the file whose lines are to be counted.
+ * @return {int} - The total number of lines in the specified file.
+ * 
+ * @details
+ *   - Assumes the file can be opened and read without errors.
+ *   - Utilizes std::count to iterate and count newline characters.
+ */
 int count_lines(const char *filename) {
     std::ifstream ifs(filename);
     return std::count(std::istreambuf_iterator(ifs), std::istreambuf_iterator<char>(), '\n');
 }
 
+/**
+ * Verifies that a specified file contains a specific number of lines
+ * and logs the process.
+ *
+ * @param {string} filename - The name of the file to verify.
+ * @param {number} expected_count - The expected line count of the file.
+ * @example
+ * verify_file('example.txt', 10);
+ * // Logs information and exits if the file does not contain 10 lines.
+ *
+ * @returns {void}
+ *
+ * @details
+ *  - If the actual line count does not match the expected line count, logs an error and terminates the program.
+ *  - Uses a logging library to inform about verification steps.
+ *  - The function exits with status code 1 on failure.
+ */
 void verify_file(const char *filename, int expected_count) {
     spdlog::info("Verifying {} to contain {} line..", filename, expected_count);
     auto count = count_lines(filename);
@@ -46,6 +76,22 @@ void verify_file(const char *filename, int expected_count) {
 
 using namespace spdlog::sinks;
 
+/**
+ * @function main
+ * @description Entry point for the async logger benchmarking program which evaluates the performance of logging a specified number of messages using asynchronous logging with different queue overflow policies.
+ * @param {number} argc - Count of command-line arguments, including the program's name.
+ * @param {Array<string>} argv - Array of command-line arguments. Can include message count, thread count, queue size, and number of iterations.
+ * @returns {number} - Returns 0 on successful execution, 1 otherwise if there is an error or invalid input.
+ * @example
+ * main( ["1000", "4", "1024", "3"] );
+ * // Expected output: Benchmark results logged to console or file with the specified configuration.
+ * 
+ * @details
+ *   - Validates input values to ensure none of the numeric arguments are below 1.
+ *   - Compares queue size against the maximum allowed and exits if it exceeds.
+ *   - Two queue overflow policies are tested: block and overrun, each in separate iterations.
+ *   - Logs performance results in terms of number of messages, threads, queue slots, iteration count, and queue memory consumption.
+ */
 int main(int argc, char *argv[]) {
     // setlocale to show thousands separators
     std::locale::global(std::locale("en_US.UTF-8"));
@@ -132,12 +178,47 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/**
+ * Logs a specified number of messages using a shared logger instance.
+ *
+ * @function thread_fun
+ * @param {Object} logger - A shared pointer to a spdlog logger object used for logging messages.
+ * @param {number} howmany - The number of messages to log.
+ * 
+ * @example
+ * const logger = spdlog::stdout_color_mt("console");
+ * thread_fun(logger, 10);
+ * // Logs 10 messages to the console.
+ *
+ * @details
+ * - This function uses the logger provided to record messages sequentially.
+ * - Each message includes an index number to differentiate between logged messages.
+ */
 void thread_fun(std::shared_ptr<spdlog::logger> logger, int howmany) {
     for (int i = 0; i < howmany; i++) {
         logger->info("Hello logger: msg number {}", i);
     }
 }
 
+/**
+ * Executes a multi-threaded benchmark for logging.
+ *
+ * This function creates multiple threads to perform logging operations 
+ * using the specified logger instance, aimed to measure the execution 
+ * time for logging a specified number of messages.
+ *
+ * @param {int} howmany - The total number of messages to be logged.
+ * @param {std::shared_ptr<spdlog::logger>} logger - The logger instance used for logging operations.
+ * @param {int} thread_count - The number of threads to be spawned for concurrent logging.
+ * 
+ * @example
+ * bench_mt(100000, my_logger, 4);
+ * 
+ * @details
+ *   - The function distributes the logging workload evenly across the specified number of threads.
+ *   - The execution time and logging rate are outputted via spdlog::info at completion.
+ *   - If the `howmany` is not perfectly divisible by `thread_count`, the first thread will handle the remainder.
+ */
 void bench_mt(int howmany, std::shared_ptr<spdlog::logger> logger, int thread_count) {
     using std::chrono::high_resolution_clock;
     vector<std::thread> threads;
